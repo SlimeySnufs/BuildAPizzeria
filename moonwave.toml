@@ -1,0 +1,24 @@
+title = "BuildAPizzeria"  # From Git
+gitRepoUrl = "https://github.com/SlimeySnufs/BuildAPizzeria" # From Git
+
+gitSourceBranch = "master"
+changelog = true
+
+[[classOrder]]
+section = "Data Manipulation"
+classes = ["GetProfile", "GetProfile"]
+
+[docusaurus]
+onBrokenLinks = "throw"
+onBrokenMarkdownLinks = "warn"
+
+# From git:
+organizationName = "Slimey"
+projectName = "BuildAPizzeria"
+url = "https://AuthorName.github.io"
+baseUrl = "/BuildAPizzeria"
+tagline = "hopefully this sees light"
+
+[footer]
+style = "dark"
+copyright = "Copyright © 2025 Slimey."

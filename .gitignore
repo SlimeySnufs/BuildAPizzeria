@@ -1,0 +1,12 @@
+# Project place file
+/BuildAPizzeria.rbxlx
+
+# Roblox Studio lock files
+/*.rbxlx.lock
+/*.rbxl.lock
+
+# Other ignore files
+/*node_modules
+/*build
+/*default.project.json
+/*wally.toml
