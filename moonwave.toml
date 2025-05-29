@@ -6,7 +6,11 @@ changelog = true
 
 [[classOrder]]
 section = "Data Manipulation"
-classes = ["GetProfile", "GetProfile"]
+tag = "DataManipulation"
+
+[[classOrder]]
+section = "Signal (Lib)"
+tag = "Signal"
 
 [docusaurus]
 onBrokenLinks = "throw"

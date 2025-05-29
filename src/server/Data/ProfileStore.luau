@@ -1,3 +1,4 @@
+--!strict
 --[[
 MAD STUDIO (by loleris)
 

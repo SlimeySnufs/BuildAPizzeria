@@ -1,6 +1,7 @@
 --[=[
     @class GetProfile
     @server
+    @tag DataManipulation
     A module for manipulating player data profiles.
 ]=]
 local module = {}
@@ -21,18 +22,23 @@ local Players = game:GetService("Players")
     If the player is not found or invalid, an error is raised.
     
     @param Player Player
-    @return Profile?
+    @return Profile
     
     @error "Invalid player provided or player not found in the game."
 
+    @yields
     @tag DataManipulation
 ]=]
-function module.GetProfile(player: Player) : Types.Profile?
+function module.GetProfile(player: Player) : Types.Profile
     if player and player:IsA("Player") and Players:FindFirstChild(player.Name) then
         return ProfileCache[player]
     else
-        error("Invalid player provided or player not found in the game.")
+        repeat 
+            task.wait(0.1) -- Wait for a short time before retrying
+        until ProfileCache[player] -- Retry until the player is found
+
+        return ProfileCache[player]
     end
 end
 
-return module.new()
+return module

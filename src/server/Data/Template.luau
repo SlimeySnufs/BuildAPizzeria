@@ -4,6 +4,8 @@ local template = {
     FirstTimeJoined = 0,
     LastTimeJoined = 0,
 
+    Playtime = 0,
+
     MoneyOnHand = 0,
 
     MoneyPads = {
