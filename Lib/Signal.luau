@@ -64,11 +64,11 @@ local Connection = {}
 Connection.__index = Connection
 
 --[=[
-    @function Connection.new
+    @function new
     @within Connection
     Creates a new connection to a signal handler.
-    @param signal Signal The signal to connect to.
-    @param fn function The function to run when the signal is fired.
+    @param signal 
+    @param fn (any) -> ()
     @return Connection
 ]=]
 function Connection.new(signal, fn)

@@ -11,6 +11,10 @@ local DataReplicationMain = require(DataReplication.Main)
 local ProfileFetcher = require(DataManipulation.GetProfile)
 local Playtime = require(DataManipulation.Playtime)
 
+--[[MONEYPAD SERVICE]]
+local MoneypadService = script.MoneypadService
+local LocationConfig = require(MoneypadService.LocationConfiguration).init()
+
 local Types = require(ServerScriptService.Server.Types)
 
 local function onPlayerAdded(player: Player)

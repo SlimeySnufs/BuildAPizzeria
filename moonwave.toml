@@ -5,14 +5,20 @@ gitSourceBranch = "master"
 changelog = true
 
 [[classOrder]]
+section = "Sever"
+tag = "Server"
+
+[[classOrder]]
 section = "Data Manipulation"
 tag = "DataManipulation"
 
-section = "Signal (Lib)"
-tag = "Signal"
-
+[[classOrder]]
 section = "Data Replication"
 tag = "DataReplication"
+
+[[classOrder]]
+section = "Moneypad Service"
+tag = "MoneypadService"
 
 [docusaurus]
 onBrokenLinks = "throw"

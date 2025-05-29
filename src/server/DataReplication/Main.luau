@@ -3,23 +3,29 @@
     @tag DataReplication
     Handles the players data to tell client playerdata
 ]=]
-local module = {
-    HandledPlayers = {}
-}
+local module = {}
+
+--[=[
+    @prop HandledPlayers {[player] : RBXScriptConnection}
+    @within DataReplication
+]=]
+module.HandledPlayers = {}
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local RunService = game:GetService("RunService")
 
 local Server = ServerScriptService.Server
-local Types = require(Server.Types)
 
 local DataManipulation = ServerScriptService.Server.DataManipulation
 local ProfileFetcher = require(DataManipulation.GetProfile)
 
-local UPDATE_INTERVAL = 0.5 -- Update delay in seconds
+local UPDATE_INTERVAL: number = 0.2 -- Update delay in seconds
 
 --[=[
-    Recursively replicates a Lua table into folders/values under a parent
+    @function replicateToInstance
+    Recursively replicates a Lua table into folders/values under a parent.
+    *** Not for Public Use. ***
+    @within DataReplication
     @param dataTable table
     @param parent Instance
 ]=]
@@ -49,7 +55,7 @@ end
 --[=[
     @function HandlePlayer
     Initializes the players data replication to the client
-
+    @within DataReplication
     @param player Player
     @return nil
 ]=]
@@ -91,7 +97,7 @@ end
 --[=[
     @function UnhandlePlayer
     Cleans up heartbeat and folder for the given player
-
+    @within DataReplication
     @param player Player
     @return nil
 ]=]
