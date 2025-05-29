@@ -11,46 +11,17 @@ local module = {}
 ]=]
 module.HandledPlayers = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
-local RunService = game:GetService("RunService")
-
-local Server = ServerScriptService.Server
+local Packages = ReplicatedStorage.Packages
+local Types = require(ServerScriptService.Server.Types)
 
 local DataManipulation = ServerScriptService.Server.DataManipulation
+local ReplicaFetcher = require(DataManipulation.GetReplica)
+
+local Replica = require(Packages.replica)
 local ProfileFetcher = require(DataManipulation.GetProfile)
-
-local UPDATE_INTERVAL: number = 0.2 -- Update delay in seconds
-
---[=[
-    @function replicateToInstance
-    Recursively replicates a Lua table into folders/values under a parent.
-    *** Not for Public Use. ***
-    @within DataReplication
-    @param dataTable table
-    @param parent Instance
-]=]
-local function replicateToInstance(dataTable: {}, parent: Instance)
-	for key, value in pairs(dataTable) do
-		if typeof(key) ~= "string" then continue end
-
-		local existing = parent:FindFirstChild(key)
-
-		if typeof(value) == "table" then
-			local folder = existing or Instance.new("Folder")
-			folder.Name = key
-			folder.Parent = parent
-			replicateToInstance(value, folder)
-		elseif typeof(value) == "number" or typeof(value) == "string" or typeof(value) == "boolean" then
-			local val = existing or Instance.new("StringValue")
-			val.Name = key
-			val.Parent = parent
-			local str = tostring(value)
-			if val.Value ~= str then
-				val.Value = str
-			end
-		end
-	end
-end
+local ReplicaCache = require(script.Parent.ReplicaCache)
 
 --[=[
     @function HandlePlayer
@@ -66,32 +37,13 @@ function module.HandlePlayer(player: Player)
 		return
 	end
 
-	local statsFolder = Instance.new("Folder")
-	statsFolder.Name = "PlayerStats"
-	statsFolder.Parent = player
+	local replica : Types.Replica = Replica.New({
+    	Token = Replica.Token(tostring(player.UserId)),
+    	Data = profile.Data,
+	})
 
-	local lastUpdate = 0
+	replica:Replicate()
 
-	local connection = RunService.Heartbeat:Connect(function(dt)
-		lastUpdate += dt
-		if lastUpdate < UPDATE_INTERVAL then return end
-		lastUpdate = 0
-
-		if not player or not player:IsDescendantOf(game) then return end
-
-		local success, err = pcall(function()
-			replicateToInstance(profile.Data, statsFolder)
-		end)
-
-		if not success then
-			warn(`Replication error for {player.Name}: {err}`)
-		end
-	end)
-
-	module.HandledPlayers[player] = {
-		Connection = connection,
-		StatsFolder = statsFolder
-	}
 end
 
 --[=[
@@ -102,16 +54,11 @@ end
     @return nil
 ]=]
 function module.UnhandlePlayer(player: Player)
-	local data = module.HandledPlayers[player]
-	if data then
-		if data.Connection then
-			data.Connection:Disconnect()
-		end
-		if data.StatsFolder and data.StatsFolder.Parent then
-			data.StatsFolder:Destroy()
-		end
-		module.HandledPlayers[player] = nil
+	local replica = ReplicaFetcher.GetReplica(player)
+	if not(replica) then
+		warn(`Did not get Replica for {player.Name}!`)
 	end
+	replica = nil
 end
 
 return module

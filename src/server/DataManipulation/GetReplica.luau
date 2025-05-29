@@ -1,49 +1,49 @@
 --[=[
-    @class GetProfile
+    @class GetReplica
     @server
     @tag DataManipulation
-    A module for getting the players data profile
+    A module for fetching the players replica class
 ]=]
 local module = {}
 local ServerScriptService = game:GetService("ServerScriptService")
 local Server = ServerScriptService.Server
 
+local DataReplication = Server.DataReplication
+
 local Types = require(ServerScriptService.Server.Types)
 
-local Data = Server.Data
-local ProfileCache = require(Data.ProfileCache)
-local Players = game:GetService("Players")
+local ReplicaCache = require(DataReplication.ReplicaCache)
 
 --[=[
-    @function GetProfile
+    @function GetReplica
     @server
-    @within GetProfile
-    Returns the profile of the given player.
+    @within GetReplica
+    Returns the Replica of the given player.
     If the player is not found or invalid, an error is raised.
     
     @param Player Player
     @return Profile
 
-    @error NotFound -- "Couldn't find Profile after 15 seconds"
+    @error NotFound -- "Couldn't find Replica after 15 seconds"
 
     @yields
     @tag DataManipulation
 ]=]
-function module.GetProfile(player: Player) : Types.Profile?
+function module.GetReplica(player: Player) : Types.Replica?
 
     local waitTime = 0
 
     repeat 
         task.wait(0.1)
         waitTime += 0.1
-    until ProfileCache[player] or waitTime >= 15
+    until ReplicaCache[player] or waitTime >= 15
 
-    if not(ProfileCache[player]) then
+    if not(ReplicaCache[player]) then
         error("Couldnt find Profile after 15 seconds")
         return nil
     end
 
-    return ProfileCache[player]
+    return ReplicaCache[player]
 end
 
 return module

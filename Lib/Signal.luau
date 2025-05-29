@@ -67,7 +67,7 @@ Connection.__index = Connection
     @function new
     @within Connection
     Creates a new connection to a signal handler.
-    @param signal 
+    @param signal Signal
     @param fn (any) -> ()
     @return Connection
 ]=]
