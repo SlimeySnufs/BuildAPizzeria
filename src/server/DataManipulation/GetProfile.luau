@@ -23,22 +23,27 @@ local Players = game:GetService("Players")
     
     @param Player Player
     @return Profile
-    
-    @error "Invalid player provided or player not found in the game."
+
+    @error NotFound -- "Couldn't find Profile after 15 seconds"
 
     @yields
     @tag DataManipulation
 ]=]
-function module.GetProfile(player: Player) : Types.Profile
-    if player and player:IsA("Player") and Players:FindFirstChild(player.Name) then
-        return ProfileCache[player]
-    else
-        repeat 
-            task.wait(0.1) -- Wait for a short time before retrying
-        until ProfileCache[player] -- Retry until the player is found
+function module.GetProfile(player: Player) : Types.Profile?
 
-        return ProfileCache[player]
+    local waitTime = 0
+
+    repeat 
+        task.wait(0.1)
+        waitTime += 0.1
+    until ProfileCache[player] or waitTime >= 15
+
+    if not(ProfileCache[player]) then
+        error("Couldnt find Profile after 15 seconds")
+        return nil
     end
+
+    return ProfileCache[player]
 end
 
 return module

@@ -2,8 +2,11 @@ local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Server: Script = ServerScriptService.Server
 local Data = Server.Data
-local DataManipulation: any= Server.DataManipulation
+local DataManipulation= Server.DataManipulation
+local DataReplication = Server.DataReplication
 
+local DataMain = require(Data.Main)
+local DataReplicationMain = require(DataReplication.Main)
 
 local ProfileFetcher = require(DataManipulation.GetProfile)
 local Playtime = require(DataManipulation.Playtime)
@@ -17,6 +20,7 @@ local function onPlayerAdded(player: Player)
         error("Failed to initialize profile for player: " .. player.Name)
     end
     Playtime.AttachPlayerToPlaytimeLoop(player)
+    DataReplicationMain.HandlePlayer(player)
 end
 
 local function onPlayerRemoving(player: Player)
@@ -24,6 +28,7 @@ local function onPlayerRemoving(player: Player)
     local profile : Types.Profile = ProfileFetcher.GetProfile(player)
     if profile then
         Playtime.DetachPlayerFromPlaytimeLoop(player)
+        DataReplicationMain.UnhandlePlayer(player)
     end
 end
 

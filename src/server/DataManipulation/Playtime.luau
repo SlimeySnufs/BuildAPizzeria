@@ -34,6 +34,7 @@ local ProfileFetcher = require(script.Parent.GetProfile)
     @function GetPlaytime
     Fetchs the players profile and returns the playtime in seconds unrounded.
     @within Playtime
+    @error NotFound -- Player profile not found.
     @param player Player
     @return Playtime: Number
 ]=]
@@ -56,8 +57,8 @@ end
     @param player Player
     @param playtime Number
 
-    @error "Player profile not found."
-    @error "Playtime must be a number."
+    @error NotFound -- Player profile not found.
+    @error TypeError -- Playtime must be a number.
 ]=]
 function Playtime.SetPlaytime(player: Player, playtime: number)
     local profile: Types.Profile = ProfileFetcher.GetProfile(player)
@@ -78,8 +79,8 @@ end
     @within Playtime
     @param player Player
     @param playtime Number
-    @error "Player profile not found."
-    @error "Playtime must be a number."
+    @error NotFound -- Player profile not found.
+    @error TypeError -- Playtime must be a number.
 ]=]
 function Playtime.AddPlaytime(player: Player, playtime: number)
     local profile: Types.Profile = ProfileFetcher.GetProfile(player)
@@ -99,7 +100,7 @@ end
     Adds the player to one heartbeat where all players playtime is updated.
     @within Playtime
     @param player Player
-    @error "Player profile not found."
+    @error NotFound -- Player profile not found.
 ]=]
 function Playtime.AttachPlayerToPlaytimeLoop(player : Player)
     local profile: Types.Profile = ProfileFetcher.GetProfile(player)
@@ -114,7 +115,7 @@ end
     Removes the player from the heartbeat loop.
     @within Playtime
     @param player Player
-    @error "Player not found in the attached players list."
+    @error NotFound -- Player not found in the attached players list.
 ]=]
 function Playtime.DetachPlayerFromPlaytimeLoop(player : Player)
     for i, attachedPlayer in ipairs(Playtime.PlayersAttached) do
@@ -131,7 +132,7 @@ end
     Initializes the heartbeat loop that updates player playtime.
     This should be called once when the server starts.
     @within Playtime
-    @error "This function should only be called once."
+    @error CallOnce -- This function should only be called once.
 ]=]
 function Playtime.InitHeartbeatLoop()
     
