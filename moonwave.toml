@@ -5,15 +5,6 @@ gitSourceBranch = "master"
 changelog = true
 
 [[classOrder]]
-section = "Server"
-classes = ["Data Manipulation","Data Replication","Moneypad Service"]
-
-[[classOrder]]
-section = "Utils"
-classes = ["Signal","Connection"]
-tag = "Lib"
-
-[[classOrder]]
 section = "Data Manipulation"
 tag = "DataManipulation"
 
@@ -26,12 +17,16 @@ section = "Moneypad Service"
 tag = "MoneypadService"
 
 [[classOrder]]
-section "Client Data"
-tag = "ClientData
+section = "Client Data"
+tag = "ClientData"
 
 [[classOrder]]
 section = "Signal"
 tag = "Signal"
+
+[[classOrder]]
+section = "Client MoneyPad Replication"
+tag = "MoneyPadReplication"
 
 [docusaurus]
 onBrokenLinks = "throw"

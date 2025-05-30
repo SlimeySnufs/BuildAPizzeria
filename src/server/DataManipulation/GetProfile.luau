@@ -33,6 +33,10 @@ function module.GetProfile(player: Player) : Types.Profile?
 
     local waitTime = 0
 
+    if (ProfileCache[player]) then
+        return ProfileCache[player]
+    end
+
     repeat 
         task.wait(0.1)
         waitTime += 0.1

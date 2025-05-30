@@ -65,6 +65,14 @@ local function onServerStart()
     end
 end
 
+local function onServerClose()
+    for _, player in Players:GetPlayers() do
+        PlayerRemoving(player)
+    end
+end
+
+game:BindToClose(onServerClose)
+
 Players.PlayerAdded:Connect(PlayerAdded)
 Players.PlayerRemoving:Connect(PlayerRemoving)
 

@@ -33,6 +33,10 @@ function module.GetReplica(player: Player) : Types.Replica?
 
     local waitTime = 0
 
+    if (ReplicaCache[player]) then
+        return ReplicaCache[player]
+    end
+
     repeat 
         task.wait(0.1)
         waitTime += 0.1

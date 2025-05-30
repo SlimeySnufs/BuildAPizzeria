@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 --[=[
     @class MoneyPad
@@ -14,6 +15,8 @@ local AssetsFolder = ReplicatedStorage.Assets
 local Lib = ReplicatedStorage.Lib
 local Pads = AssetsFolder.Pads
 
+local GetProfile = require(ServerScriptService.Server.DataManipulation.GetProfile)
+local replica = require(ReplicatedStorage.Packages.replica)
 local Signal = require(Lib.Signal)
 
 local Packages = ReplicatedStorage.Packages
@@ -72,8 +75,8 @@ function moneyPad.new(id : string | number, cframe : CFrame) : MoneyPad
     self.Position = cframe
     self.ID = id
     self.MoneyPadPhysical = MoneyPad:Clone() :: Model
-    self.MoneyPadPhysical.Parent = workspace
-    self.MoneyPadPhysical.Name = "MoneyPad"..tostring(id)
+    self.MoneyPadPhysical.Parent = workspace.MoneyPads
+    self.MoneyPadPhysical.Name = tostring(id)
     self.MoneyPadPhysical:PivotTo(self.Position)
 
     --[=[
@@ -81,14 +84,11 @@ function moneyPad.new(id : string | number, cframe : CFrame) : MoneyPad
         @within MoneyPad
     ]=]
     self.hitbox = self:CreateHitbox() :: BasePart
-    print(`hit box returns: `, self.hitbox)
-
-    self.MoneyPadZone = Zone.new(self.hitbox)
-    self.MoneyPadZone.playerEntered:Connect(self.PlayerEntered)
-    self.MoneyPadZone.playerExited:Connect(self.PlayerExited)
-
-    self.PlayerEntered = Signal.new() :: typeof(Signal.new())
-    self.PlayerExited = Signal.new() :: typeof(Signal.new())
+    
+    --[=[
+        @prop MoneyPadReplica Replica
+        @within MoneyPad
+    ]=]
 
     self.PlayerMoney = {} :: {
         [Player] : {
@@ -96,7 +96,69 @@ function moneyPad.new(id : string | number, cframe : CFrame) : MoneyPad
         }
     }
 
+    --[=[
+        @prop MoneyPadReplicaCache {[Player] : Replica}
+        @within MoneyPad
+    ]=]
+    self.MoneyPadReplicaCache = {} :: {[Player] : any}
+
+    --[[ZONE HANDLING]]--
+    self.MoneyPadZone = Zone.new(self.hitbox)
+
+    self.MoneyPadZone.playerEntered:Connect(function(player : Player)
+        self.PlayerEntered:Fire(player)
+    end)
+
+    self.MoneyPadZone.playerExited:Connect(function(player : Player)
+        self.PlayerExited:Fire(player)
+    end)
+
+    self.PlayerEntered = Signal.new() :: typeof(Signal.new())
+    self.PlayerExited = Signal.new() :: typeof(Signal.new())
+
     return self
+
+end
+
+--[=[
+    @method GiveReplica
+    Caches a new player that joined's moneypad replica
+    @param player Player
+    @param Moneypad Replica Replica
+
+    @error AlreadyCached -- Player's Replica is already cached
+
+    @within MoneyPad
+]=]
+function moneyPad:GiveReplica(player : Player, replica : any) : number?
+    
+    if self.MoneyPadReplicaCache[player] then
+        error("The players moneypad replica is already cached inside of this?")
+        return
+    end
+
+    self.MoneyPadReplicaCache[player] = replica
+
+end
+
+--[=[
+    @method RemoveReplica
+    Caches a new player that joined's moneypad replica
+
+    @param player Player
+
+    @error NotCached -- Player's Replica is not in the class cache?
+
+    @within MoneyPad
+]=]
+function moneyPad:RemoveReplica(player : Player, replica : any) : number?
+    
+    if not self.MoneyPadReplicaCache[player] then
+        error("Player's Replica is not in the class cache?")
+        return
+    end
+
+    self.MoneyPadReplicaCache[player] = nil
 
 end
 
@@ -136,7 +198,63 @@ function moneyPad:AddMoneyOnPad(player : Player, amount : number) : nil
         }
     end
 
+    local Profile = GetProfile.GetProfile(player)
+
+    if not(Profile.Data.MoneyPads[self.ID]) then
+        Profile.Data.MoneyPads[self.ID] = {}
+    else
+        self.PlayerMoney[player].Money = Profile.Data.MoneyPads[self.ID].Money
+    end
+
     self.PlayerMoney[player].Money += amount
+
+    if (self.MoneyPadReplicaCache[player]) then
+        self.MoneyPadReplicaCache[player]:Set({self.ID,"Money"},self.PlayerMoney[player].Money)
+    end
+
+    Profile.Data.MoneyPads[self.ID].Money = self.PlayerMoney[player].Money
+
+    return nil
+
+end
+
+--[=[
+    @method SubMoneyOnPad
+    Adds money that the player has on this pad
+    
+    @param player Player
+    @param amount Number
+
+    @return Boolean -- Passed
+    @within MoneyPad
+]=]
+function moneyPad:SubMoneyOnPad(player : Player, amount : number) : nil
+    
+    if not(self.PlayerMoney[player]) then
+        self.PlayerMoney[player] = {
+            Money = 0
+        }
+    end
+
+    local Profile = GetProfile.GetProfile(player)
+
+    if not(Profile.Data.MoneyPads[self.ID]) then
+        Profile.Data.MoneyPads[self.ID] = {}
+    else
+        self.PlayerMoney[player].Money = Profile.Data.MoneyPads[self.ID].Money
+    end
+
+    if (self.PlayerMoney[player].Money - amount) < 0 then 
+        return false
+    end
+
+    self.PlayerMoney[player].Money -= amount
+
+    if (self.MoneyPadReplicaCache[player]) then
+        self.MoneyPadReplicaCache[player]:Set({self.ID,"Money"},self.PlayerMoney[player].Money)
+    end
+
+    Profile.Data.MoneyPads[self.ID].Money = self.PlayerMoney[player].Money
 
     return nil
 

@@ -25,6 +25,7 @@ local function onPlayerAdded(player: Player)
     end
     Playtime.AttachPlayerToPlaytimeLoop(player)
     DataReplicationMain.HandlePlayer(player)
+    print(`Initalized all server things for {player.Name}`)
 end
 
 local function onPlayerRemoving(player: Player)

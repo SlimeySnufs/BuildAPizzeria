@@ -37,12 +37,22 @@ function module.HandlePlayer(player: Player)
 		return
 	end
 
+    local TokenVal = Replica.Token(tostring(player.UserId))
+
 	local replica : Types.Replica = Replica.New({
-    	Token = Replica.Token(tostring(player.UserId)),
+    	Token = TokenVal,
+        Tags = {
+            Player = player
+        },
     	Data = profile.Data,
 	})
 
 	replica:Replicate()
+
+    ReplicaCache[player] = replica
+
+    print(`Replica for {player.Name} initalized!`)
+    print(`Data: `, replica.Data)
 
 end
 
@@ -59,6 +69,9 @@ function module.UnhandlePlayer(player: Player)
 		warn(`Did not get Replica for {player.Name}!`)
 	end
 	replica = nil
+    if (ReplicaCache[player]) then
+        ReplicaCache[player] = nil
+    end
 end
 
 return module

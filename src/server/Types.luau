@@ -7,10 +7,8 @@ local Packages = ReplicatedStorage.Packages
 
 --[[SERVICES]]
 local Replica = require(Packages.replica)
-local MoneypadService = require(Server.MoneypadService.Moneypad)
 
 export type Profile = typeof(require(Data.ProfileStore):StartSessionAsync())
-export type MoneyPad = MoneypadService.MoneyPad
 export type Replica = typeof(Replica.New(...))
 
 return {}

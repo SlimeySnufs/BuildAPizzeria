@@ -83,6 +83,8 @@ local MAID_LOCK = {}
 local REQUEST_DATA_REPEAT = 2
 
 local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
 local DataRequestStarted = false
 

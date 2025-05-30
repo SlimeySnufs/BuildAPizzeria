@@ -1,5 +1,5 @@
 --[=[
-    @class Main
+    @class DataMain
     Contains one function that just starts all data modules for the client
     @client
     @tag ClientData
@@ -8,13 +8,13 @@ local module = {}
 
 --[=[
     @function Init
-    @within Main
+    @within DataMain
     Initializes all data modules within the data folder of the client
     @client
 ]=]
 function module.Init()
     
-    local _ReplicaClient = require(script.Parent.ReplicaClient)
+    local ReplicaClient = require(script.Parent.ReplicaClient).Init()
 
 end
 

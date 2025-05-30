@@ -29,6 +29,7 @@ local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Types = require(ServerScriptService.Server.Types)
 local ProfileFetcher = require(script.Parent.GetProfile)
+local ReplicaFetcher = require(script.Parent.GetReplica)
 
 --[=[
     @function GetPlaytime
@@ -71,6 +72,7 @@ function Playtime.SetPlaytime(player: Player, playtime: number)
     end
 
     profile.Data.Playtime = playtime
+    ReplicaFetcher.GetReplica(player):Set({"Playtime"},playtime)
 end
 
 --[=[
@@ -93,6 +95,7 @@ function Playtime.AddPlaytime(player: Player, playtime: number)
     end
 
     profile.Data.Playtime = (profile.Data.Playtime or 0) + playtime
+    ReplicaFetcher.GetReplica(player):Set({"Playtime"},profile.Data.Playtime)
 end
 
 --[=[
@@ -140,9 +143,14 @@ function Playtime.InitHeartbeatLoop()
         error("This function should only be called once.")
     end
 
+    local totalDT: number = 0
     Playtime.Heartbeat = RunService.Heartbeat:Connect(function(deltaTime: number)
-        for _ , player : Player in ipairs(Playtime.PlayersAttached) do
-            Playtime.AddPlaytime(player, deltaTime)
+        totalDT += deltaTime
+        if (totalDT > 0.1) then
+            for _ , player : Player in ipairs(Playtime.PlayersAttached) do
+                Playtime.AddPlaytime(player, 0.1)
+            end
+            totalDT = 0
         end
     end)
 
