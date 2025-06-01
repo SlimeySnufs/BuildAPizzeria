@@ -39,7 +39,7 @@ export type MoneyPad = typeof(setmetatable({}, moneyPad))
     @within MoneyPad
 ]=]
 function moneyPad.new(id : string | number, cframe : CFrame) : MoneyPad
-    
+
     local self = setmetatable({}, moneyPad)
 
     --[=[
@@ -84,7 +84,7 @@ function moneyPad.new(id : string | number, cframe : CFrame) : MoneyPad
         @within MoneyPad
     ]=]
     self.hitbox = self:CreateHitbox() :: BasePart
-    
+
     --[=[
         @prop MoneyPadReplica Replica
         @within MoneyPad
@@ -101,6 +101,12 @@ function moneyPad.new(id : string | number, cframe : CFrame) : MoneyPad
         @within MoneyPad
     ]=]
     self.MoneyPadReplicaCache = {} :: {[Player] : any}
+
+    --[=[
+        @prop DataReady {[Player] : boolean}
+        @within MoneyPad
+    ]=]
+    self.DataReady = {}
 
     --[[ZONE HANDLING]]--
     self.MoneyPadZone = Zone.new(self.hitbox)
@@ -131,13 +137,27 @@ end
     @within MoneyPad
 ]=]
 function moneyPad:GiveReplica(player : Player, replica : any) : number?
-    
+
     if self.MoneyPadReplicaCache[player] then
         error("The players moneypad replica is already cached inside of this?")
         return
     end
 
     self.MoneyPadReplicaCache[player] = replica
+
+    self.PlayerMoney[player] = {
+        Money = 0
+    }
+
+    local Profile = GetProfile.GetProfile(player)
+
+    if not(Profile.Data.MoneyPads[self.ID]) then
+        Profile.Data.MoneyPads[self.ID] = { Money = 0 }
+    else
+        self.PlayerMoney[player].Money = Profile.Data.MoneyPads[self.ID].Money or 0
+    end
+
+    self.DataReady[player] = true
 
 end
 
@@ -152,13 +172,15 @@ end
     @within MoneyPad
 ]=]
 function moneyPad:RemoveReplica(player : Player, replica : any) : number?
-    
+
     if not self.MoneyPadReplicaCache[player] then
         error("Player's Replica is not in the class cache?")
         return
     end
 
     self.MoneyPadReplicaCache[player] = nil
+    self.PlayerMoney[player] = nil
+    self.DataReady[player] = nil
 
 end
 
@@ -170,7 +192,7 @@ end
     @within MoneyPad
 ]=]
 function moneyPad:GetMoneyOnPad(player : Player) : number?
-    
+
     if not(self.PlayerMoney[player]) or not(self.PlayerMoney[player].Money) then
         warn(`Didn't find any money on this pad for {player.Name}!`)
         return nil
@@ -183,7 +205,7 @@ end
 --[=[
     @method AddMoneyOnPad
     Adds money that the player has on this pad
-    
+
     @param player Player
     @param amount Number
 
@@ -191,7 +213,9 @@ end
     @within MoneyPad
 ]=]
 function moneyPad:AddMoneyOnPad(player : Player, amount : number) : nil
-    
+
+    if not self.DataReady[player] then return end
+
     if not(self.PlayerMoney[player]) then
         self.PlayerMoney[player] = {
             Money = 0
@@ -199,12 +223,6 @@ function moneyPad:AddMoneyOnPad(player : Player, amount : number) : nil
     end
 
     local Profile = GetProfile.GetProfile(player)
-
-    if not(Profile.Data.MoneyPads[self.ID]) then
-        Profile.Data.MoneyPads[self.ID] = {}
-    else
-        self.PlayerMoney[player].Money = Profile.Data.MoneyPads[self.ID].Money
-    end
 
     self.PlayerMoney[player].Money += amount
 
@@ -221,15 +239,17 @@ end
 --[=[
     @method SubMoneyOnPad
     Adds money that the player has on this pad
-    
+
     @param player Player
     @param amount Number
 
-    @return Boolean -- Passed
+    @return boolean -- Passed
     @within MoneyPad
 ]=]
 function moneyPad:SubMoneyOnPad(player : Player, amount : number) : nil
-    
+
+    if not self.DataReady[player] then return end
+
     if not(self.PlayerMoney[player]) then
         self.PlayerMoney[player] = {
             Money = 0
@@ -237,16 +257,6 @@ function moneyPad:SubMoneyOnPad(player : Player, amount : number) : nil
     end
 
     local Profile = GetProfile.GetProfile(player)
-
-    if not(Profile.Data.MoneyPads[self.ID]) then
-        Profile.Data.MoneyPads[self.ID] = {}
-    else
-        self.PlayerMoney[player].Money = Profile.Data.MoneyPads[self.ID].Money
-    end
-
-    if (self.PlayerMoney[player].Money - amount) < 0 then 
-        return false
-    end
 
     self.PlayerMoney[player].Money -= amount
 
@@ -267,7 +277,7 @@ end
     @return BasePart
 ]=]
 function moneyPad:CreateHitbox() : BasePart
-    
+
     local hitbox : BasePart =  Instance.new("Part")
     hitbox.Name = "Hitbox"
     hitbox.Transparency = 1
@@ -288,7 +298,7 @@ end
     @within MoneyPad
 ]=]
 function moneyPad:Destroy()
-    
+
     if (self.MoneyPadPhysical) then
         self.MoneyPadPhysical:Destroy()
     end

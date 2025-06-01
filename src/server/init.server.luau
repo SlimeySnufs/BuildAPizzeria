@@ -11,9 +11,16 @@ local DataReplicationMain = require(DataReplication.Main)
 local ProfileFetcher = require(DataManipulation.GetProfile)
 local Playtime = require(DataManipulation.Playtime)
 
+--[[SERVICES]]
+local Services = script.Services
+
 --[[MONEYPAD SERVICE]]
-local MoneypadService = script.MoneypadService
-local LocationConfig = require(MoneypadService.LocationConfiguration).init()
+local MoneypadService = Services.MoneypadService
+local MoneyPadLocationConfig = require(MoneypadService.LocationConfiguration).init()
+
+--[[PRODUCTIONPAD SERVICE]]
+local ProductionPadService = Services.ProductionPadService
+local ProducionPadLocationConfig = require(ProductionPadService.LocationConfiguration).init()
 
 local Types = require(ServerScriptService.Server.Types)
 

@@ -5,6 +5,10 @@ gitSourceBranch = "master"
 changelog = true
 
 [[classOrder]]
+section = "Libraries"
+tag = "Lib"
+
+[[classOrder]]
 section = "Data Manipulation"
 tag = "DataManipulation"
 
@@ -17,8 +21,16 @@ section = "Moneypad Service"
 tag = "MoneypadService"
 
 [[classOrder]]
+section = "Productionpad Service"
+tag = "ProductionPadService"
+
+[[classOrder]]
 section = "Client Data"
 tag = "ClientData"
+
+[[classOrder]]
+section = "UserInterface"
+tag = "UserInterface"
 
 [[classOrder]]
 section = "Signal"
@@ -27,6 +39,14 @@ tag = "Signal"
 [[classOrder]]
 section = "Client MoneyPad Replication"
 tag = "MoneyPadReplication"
+
+[[classOrder]]
+section = "Client ProductionPad Replication"
+tag = "ProdPadRep"
+
+[[classOrder]]
+section = "Order Handling"
+tag = "OrderHandling"
 
 [docusaurus]
 onBrokenLinks = "throw"

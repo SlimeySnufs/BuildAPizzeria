@@ -2,22 +2,26 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 --[=[
-    @class LocationConfig
+    @class LocationConfig MoneyPad
     Uses the moneypad class and creates all the money pads in locations
     Acts as a wrapper to add money on pads aswell
     @tag MoneypadService
 ]=]
 local module = {}
 
+local GetProfile = require(ServerScriptService.Server.DataManipulation.GetProfile)
 local GetReplica = require(ServerScriptService.Server.DataManipulation.GetReplica)
 local replica = require(ReplicatedStorage.Packages.replica)
 local Moneypad = require(script.Parent.Moneypad)
+
+local DataManipulation = ServerScriptService.Server.DataManipulation
+local Currency = require(DataManipulation.Currency)
 
 --[=[
     @function init
     Adds money pads in all locations
     @return LocationConfig
-    @within LocationConfig
+    @within LocationConfig MoneyPad
 ]=]
 function module.init()
 
@@ -25,7 +29,7 @@ function module.init()
 
     --[=[
         @prop moneypadLocations {[string] : Part | CFrame}
-        @within LocationConfig
+        @within LocationConfig MoneyPad
     ]=]
     module.moneypadLocations = {
         ["Part1"] = workspace.Part1.CFrame
@@ -33,18 +37,50 @@ function module.init()
 
     --[=[
         @prop MoneyPadCache {[string] : MoneyPad}
-        @within LocationConfig
+        @within LocationConfig MoneyPad
     ]=]
     module.MoneyPadCache = {} :: {[string] : Moneypad.MoneyPad}
 
     for id : string | number , pos : CFrame in pairs(module.moneypadLocations) do
         local newMoneyPAD: Moneypad.MoneyPad = Moneypad.new(id,pos)
         module.MoneyPadCache[id] = newMoneyPAD
+
+        local PlayersInPad = {}
+
+        newMoneyPAD.PlayerEntered:Connect(function(player : Player)
+            table.insert(PlayersInPad,player)
+        end)
+
+        newMoneyPAD.PlayerExited:Connect(function(player : Player)
+            local playerInTableIndex : number? = table.find(PlayersInPad, player)
+            if not(playerInTableIndex) then 
+                print(`not in table`)
+                return
+            end
+            table.remove(PlayersInPad,playerInTableIndex)
+        end)
         
+        local SUB_RATE = 5
+
         task.spawn(function()
-            while task.wait(1) do
-                for _ , plr: Player in Players:GetPlayers() do
-                    newMoneyPAD:SubMoneyOnPad(plr, 5)
+            while task.wait(0.25) do
+                for _ , plr in Players:GetPlayers() do
+                    newMoneyPAD:AddMoneyOnPad(plr, 9)
+                end
+
+                for _ , player in PlayersInPad do
+                    local amountOfMoneyInPad: number? = newMoneyPAD:GetMoneyOnPad(player)
+                    if amountOfMoneyInPad <= 0 then
+                        warn(`Nothing in pad`)
+                        continue
+                    end
+                    if amountOfMoneyInPad < SUB_RATE then
+                        newMoneyPAD:SubMoneyOnPad(player,amountOfMoneyInPad)
+                        Currency.ChangeCurrency(player, "Cash", amountOfMoneyInPad)
+                        continue
+                    end
+                    newMoneyPAD:SubMoneyOnPad(player,SUB_RATE)
+                    Currency.ChangeCurrency(player, "Cash", SUB_RATE)
                 end
             end
         end)
@@ -66,7 +102,7 @@ end
     @param Player Player
     @param Moneypad Replica Replica
 
-    @within LocationConfig
+    @within LocationConfig MoneyPad
 ]=]
 function module.UpdateMoneyPadWithReplica(player : Player, MoneypadReplica)
     for id , moneypad in module.MoneyPadCache do
@@ -80,7 +116,7 @@ end
     
     @param Player Player
 
-    @within LocationConfig
+    @within LocationConfig MoneyPad
 ]=]
 function module.RemoveReplicaFromMoneyPad(player : Player)
     for id , moneypad in module.MoneyPadCache do
@@ -91,19 +127,18 @@ end
 --[=[
     @function HandleMoneyPadReplicas
     Handles each players replica that stores the money pads
-    @within LocationConfig
+    @within LocationConfig MoneyPad
 ]=]
 function module.HandleMoneyPadReplicas()
 
     --[=[
         @prop MoneyPadReplicas {[player] : MoneyPadReplica}
-        @within LocationConfig
+        @within LocationConfig MoneyPad
     ]=]
     module.MoneyPadReplicas = {}
 
     local function onJoin(player : Player)
-        local c = player.Character or player.CharacterAdded:Wait()
-        print(`Moneypad replica being made for {player.Name}`)
+        local _ = player.Character or player.CharacterAdded:Wait()
         local Profile = GetReplica.GetReplica(player)
 
         for moneypadid , data in Profile.Data.MoneyPads do
@@ -132,6 +167,9 @@ function module.HandleMoneyPadReplicas()
             module.MoneyPadReplicas[player] = nil
         end
         module.RemoveReplicaFromMoneyPad(player)
+    
+        local profile = GetProfile.GetProfile(player)
+
     end
 
     Players.PlayerAdded:Connect(function(player : Player)
