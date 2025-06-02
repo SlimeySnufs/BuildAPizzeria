@@ -10,7 +10,7 @@ local self = {}
 
 -- Constants
 local BILLS_PER_LAYER = 32 -- 4 x 8
-local BILLS_PER_AMOUNT = 2 -- 1 bill per 2 dollars
+local BILLS_PER_AMOUNT = 3 -- 1 bill per 2 dollars
 local GRID_WIDTH = 4
 local GRID_DEPTH = 8
 

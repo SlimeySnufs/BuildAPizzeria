@@ -37,17 +37,12 @@ function self.Init()
         productionpadReplica:OnChange(function(action , path , newvalue, OldValue)
             if (action ~= "Set") then return end
 
-            print(`is newvalue nil`, newvalue == nil)
-            print(`is oldvalue nil`,OldValue == nil)
-            
             if (newvalue ~= nil) and (OldValue == nil) then
             
                 --[[ADDED]]
 
                 local padKey = path[#path - 1]
                 local key = path[#path]
-
-                print(`added {key} to {padKey}`)
 
                 local asset = ReplicatedStorage.Assets:FindFirstChild(newvalue.Item)
                 if not(asset) then
@@ -63,8 +58,7 @@ function self.Init()
                 --[[REMOVING]]
                 local padKey = path[#path - 1]
                 local key = path[#path]
-                print(`removed {key} from {padKey}`)
-
+                
                 Render.RemoveFromProduction(padKey, key)
 
             end

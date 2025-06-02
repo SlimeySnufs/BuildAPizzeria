@@ -57,9 +57,16 @@ function module.init()
 
         task.spawn(function()
 
-            while task.wait(0.3) do
-                for _ , plr in Players:GetPlayers() do
-                    newProductionPad:Produce(plr, ReplicatedStorage.Assets.Pizza)
+            local steps = 0
+
+            while task.wait(0.25) do
+
+                steps += 1
+                if (steps > 4) then
+                    steps = 0
+                    for _ , plr in Players:GetPlayers() do
+                        newProductionPad:Produce(plr, ReplicatedStorage.Assets.Pizza)
+                    end
                 end
 
                 for _ , plr : Player in playersInPad do
@@ -86,16 +93,7 @@ function module.HandleProductionPadReplicas()
     
     local function onJoin(plr : Player)
 
-        repeat
-            task.wait()
-            print(`waiting for plr`)
-        until plr
-
-        print(`constructing replica`)
-
         local _ = plr.Character or plr.CharacterAdded:Wait()
-
-        print(`after load`)
 
         local profile = GetProfile.GetProfile(plr)
         local ProductionPadData = profile.Data["ProductionPads"]
@@ -107,16 +105,10 @@ function module.HandleProductionPadReplicas()
             Data = ProductionPadData
         })
 
-        print(`after .new`)
-
         ProductionPadReplica:Subscribe(plr)
         ProductionPadReplica:Replicate()
 
-        print(`replicated to plr`)
-        print(module)
-
         for _ , productionPad : ProductionPad.ProductionPad in module.ProductionPadCache do
-            print(`gave replica`)
             productionPad:GiveReplica(plr,ProductionPadReplica)
         end
 
@@ -132,12 +124,12 @@ function module.HandleProductionPadReplicas()
     Players.PlayerRemoving:Connect(onLeave)
 
     for _ , plr: Player in Players:GetPlayers() do
-        onJoin(player)
+        pcall(onJoin,plr)
     end
 
     game:BindToClose(function()
         for _ , plr: Player in Players:GetPlayers() do 
-            onLeave(player)
+            pcall(onLeave,plr)
         end
     end)
 

@@ -65,7 +65,7 @@ function module.init()
         task.spawn(function()
             while task.wait(0.25) do
                 for _ , plr in Players:GetPlayers() do
-                    newMoneyPAD:AddMoneyOnPad(plr, 9)
+                    newMoneyPAD:AddMoneyOnPad(plr, 3)
                 end
 
                 for _ , player in PlayersInPad do

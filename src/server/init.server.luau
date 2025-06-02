@@ -22,6 +22,10 @@ local MoneyPadLocationConfig = require(MoneypadService.LocationConfiguration).in
 local ProductionPadService = Services.ProductionPadService
 local ProducionPadLocationConfig = require(ProductionPadService.LocationConfiguration).init()
 
+--[[CUSTOMER HANDLING]]
+local OrderHandling = script.OrderHandling
+local OrderHandlingMain = require(OrderHandling.Main).Init()
+
 local Types = require(ServerScriptService.Server.Types)
 
 local function onPlayerAdded(player: Player)

@@ -27,6 +27,7 @@ end
 ]=]
 function self.init()
     self.ProductionStacks = {}
+    self.RenderedKeys = {}
     return self
 end
 
@@ -55,13 +56,18 @@ end
 ]=]
 function self.AddFromProduction(pad : string, key : string, item : Instance)
     if not self.ProductionStacks[pad] then
-        self.ProductionStacks[pad] = {}
-        self.ProductionStacks[pad].Items = 0
-        self.ProductionStacks[pad].Stack = {}
+        self.ProductionStacks[pad] = {
+            Items = 0,
+            Stack = {}
+        }
     end
 
-    if self.ProductionStacks[pad][key] then
-        warn("this key is already being rendered?")
+    if not self.RenderedKeys[pad] then
+        self.RenderedKeys[pad] = {}
+    end
+
+    if self.RenderedKeys[pad][key] then
+        warn(`key {key} already rendered for pad {pad}`)
         return
     end
 
@@ -86,10 +92,10 @@ function self.AddFromProduction(pad : string, key : string, item : Instance)
         return
     end
 
-    local index = self.ProductionStacks[pad].Items
     local height = GetStackHeight(item.Name, clone)
+    local stackLength = #self.ProductionStacks[pad].Stack
     local basePos = padInstance.PrimaryPart.Position
-    clone.Position = basePos + Vector3.new(0, height * index, 0)
+    clone.Position = basePos + Vector3.new(0, height * stackLength, 0)
     clone.Parent = padInstance
 
     TweenService:Create(clone, TweenInfo.new(0.3), { Transparency = 0 }):Play()
@@ -97,6 +103,7 @@ function self.AddFromProduction(pad : string, key : string, item : Instance)
     self.ProductionStacks[pad][key] = clone
     table.insert(self.ProductionStacks[pad].Stack, clone)
     self.ProductionStacks[pad].Items += 1
+    self.RenderedKeys[pad][key] = true
 end
 
 --[=[
@@ -132,6 +139,10 @@ function self.RemoveFromProduction(pad : string, key : string)
     task.delay(0.3, function()
         instance:Destroy()
     end)
+
+    if self.RenderedKeys[pad] then
+        self.RenderedKeys[pad][key] = nil
+    end
 end
 
 --[=[
@@ -143,9 +154,13 @@ end
 ]=]
 function self.InitialRenderFromData(pad: string, entries: { [string]: { Position: number, Item: string } })
     if not self.ProductionStacks[pad] then
-        self.ProductionStacks[pad] = {}
-        self.ProductionStacks[pad].Items = 0
-        self.ProductionStacks[pad].Stack = {}
+        self.ProductionStacks[pad] = {
+            Items = 0,
+            Stack = {}
+        }
+    end
+    if not self.RenderedKeys[pad] then
+        self.RenderedKeys[pad] = {}
     end
 
     local padInstance = self.GetPad(pad)
@@ -154,7 +169,6 @@ function self.InitialRenderFromData(pad: string, entries: { [string]: { Position
         return
     end
 
-    -- Sort items by Position
     local sorted = {}
     for key, value in pairs(entries) do
         if value and typeof(value) == "table" and typeof(value.Position) == "number" then
@@ -187,17 +201,19 @@ function self.InitialRenderFromData(pad: string, entries: { [string]: { Position
         end
 
         local height = GetStackHeight(itemName, clone)
+        local stackLength = #self.ProductionStacks[pad].Stack
         local basePos = padInstance.PrimaryPart.Position
-        clone.Position = basePos + Vector3.new(0, height * (entry.data.Position - 1), 0)
+        clone.Position = basePos + Vector3.new(0, height * stackLength, 0)
         clone.Parent = padInstance
 
         TweenService:Create(clone, TweenInfo.new(0.3), { Transparency = 0 }):Play()
 
         self.ProductionStacks[pad][key] = clone
         table.insert(self.ProductionStacks[pad].Stack, clone)
+        self.RenderedKeys[pad][key] = true
     end
 
-    self.ProductionStacks[pad].Items = #sorted
+    self.ProductionStacks[pad].Items = #self.ProductionStacks[pad].Stack
 end
 
 return self

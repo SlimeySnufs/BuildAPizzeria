@@ -151,6 +151,9 @@ function moneyPad:GiveReplica(player : Player, replica : any) : number?
 
     local Profile = GetProfile.GetProfile(player)
 
+    Profile.Data.MoneyPads[self.ID] = {Money = 0}
+    replica:Set({self.ID,"Money"},0)
+
     if not(Profile.Data.MoneyPads[self.ID]) then
         Profile.Data.MoneyPads[self.ID] = { Money = 0 }
     else
