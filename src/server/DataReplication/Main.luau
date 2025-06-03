@@ -37,6 +37,11 @@ function module.HandlePlayer(player: Player)
 		return
 	end
 
+    if ReplicaCache[player] then
+        warn(`Replica for {player.Name} already exists!`)
+        return
+    end
+
     local TokenVal = Replica.Token(tostring(player.UserId))
 
 	local replica : Types.Replica = Replica.New({
@@ -52,7 +57,6 @@ function module.HandlePlayer(player: Player)
     ReplicaCache[player] = replica
 
     print(`Replica for {player.Name} initalized!`)
-    print(`Data: `, replica.Data)
 
 end
 

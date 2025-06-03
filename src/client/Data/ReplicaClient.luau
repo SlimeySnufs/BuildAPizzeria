@@ -79,6 +79,12 @@ function module.Init()
     module.Data = {}
 
     ReplicaLib.OnNew(tostring(UserId), function(replica: ReplicaType)
+
+        if module.Replica then
+            warn("[ReplicaClient] Replica already initialized, ignoring new replica.")
+            return
+        end
+
         module.Replica = replica
         module.Ready = true
         module.Data = replica.Data

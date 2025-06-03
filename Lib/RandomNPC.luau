@@ -1,6 +1,5 @@
 --[=[
     @class RandomNPC
-    @shared
     @tag Lib
 ]=]
 

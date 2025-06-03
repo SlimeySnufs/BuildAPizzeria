@@ -12,6 +12,8 @@ local GetProfile = require(ServerScriptService.Server.DataManipulation.GetProfil
 local replica = require(ReplicatedStorage.Packages.replica)
 local ProductionPad = require(script.Parent.ProductionPad)
 
+local PickupSystem = require(script.Parent.Parent.Parent.PickupSystem.Main)
+
 --[=[
     @function init
     @within LocationConfig ProductionPad 
@@ -62,15 +64,19 @@ function module.init()
             while task.wait(0.25) do
 
                 steps += 1
-                if (steps > 4) then
+                if (steps > 8) then
                     steps = 0
                     for _ , plr in Players:GetPlayers() do
-                        newProductionPad:Produce(plr, ReplicatedStorage.Assets.Pizza)
+                        newProductionPad:Produce(plr, ReplicatedStorage.Assets.Pizza:Clone())
                     end
                 end
 
                 for _ , plr : Player in playersInPad do
+                    if not PickupSystem.CanPickUp(plr) then
+                        continue
+                    end
                     newProductionPad:PickUp(plr)
+                    PickupSystem.PickUp(plr, "AboveHead", ReplicatedStorage.Assets.Pizza:Clone())
                 end
 
             end

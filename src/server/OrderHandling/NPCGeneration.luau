@@ -103,8 +103,6 @@ function self.GivePlayerCustomer(player : Player)
         RequestAmount = PizzasRequired,
     } :: CustomerData)
 
-    print(replica.Data)
-
     self.UniqueID += 1
 
 end
@@ -126,7 +124,7 @@ function self.HandleNextCustomer(player : Player) : (string , number , number)
         return
     end
 
-    local firstCustomerData : CustomerData = table.remove(self.NPCQueues,customerAmount)
+    local firstCustomerData : CustomerData = table.remove(self.NPCQueues[player.UserId],customerAmount)
 
     replica:Set({firstCustomerData.ID}, nil)
 

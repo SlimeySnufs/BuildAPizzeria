@@ -67,6 +67,8 @@ function self.Init()
 
     end)
 
+    replica.RequestData()
+
 end
 
 return self

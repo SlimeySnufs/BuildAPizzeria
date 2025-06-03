@@ -82,6 +82,8 @@ function self.ListenForNew()
 
     end)
 
+    replica.RequestData()
+
 end
 
 return self

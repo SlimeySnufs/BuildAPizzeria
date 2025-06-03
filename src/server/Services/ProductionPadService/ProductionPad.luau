@@ -232,6 +232,11 @@ function ProductionPad:PickUp(player : Player)
     local profile = GetProfile.GetProfile(player)
     local TopOfStack = table.remove(stack, #stack)
     local key = TopOfStack.Key
+
+    if not(replica.Data[self.ID]) then
+        replica:Set({self.ID}, {})
+        return
+    end
     
     replica:Set({self.ID, key}, nil)
     profile.Data["ProductionPads"][self.ID][key] = nil

@@ -65,10 +65,12 @@ function module.init()
         task.spawn(function()
             while task.wait(0.25) do
                 for _ , plr in Players:GetPlayers() do
+                    if not plr then continue end
                     newMoneyPAD:AddMoneyOnPad(plr, 3)
                 end
 
                 for _ , player in PlayersInPad do
+                    if not player then continue end
                     local amountOfMoneyInPad: number? = newMoneyPAD:GetMoneyOnPad(player)
                     if amountOfMoneyInPad <= 0 then
                         warn(`Nothing in pad`)

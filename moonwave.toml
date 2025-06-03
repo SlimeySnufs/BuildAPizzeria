@@ -25,6 +25,10 @@ section = "Productionpad Service"
 tag = "ProductionPadService"
 
 [[classOrder]]
+section = "Actionpad Service"
+tag = "ActionPadService"
+
+[[classOrder]]
 section = "Client Data"
 tag = "ClientData"
 
@@ -43,6 +47,14 @@ tag = "MoneyPadReplication"
 [[classOrder]]
 section = "Client ProductionPad Replication"
 tag = "ProdPadRep"
+
+[[classOrder]]
+section = "Client ActionPad Replication"
+tag = "ActionPadReplication"
+
+[[classOrder]]
+section = "Client Customer Replication"
+tag = "CustomerReplication"
 
 [[classOrder]]
 section = "Order Handling"
