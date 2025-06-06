@@ -155,7 +155,7 @@ function self.NewCustomer(id : string , customerData)
         Id = id,
         CustomerData = customerData,
         Model = physicalNPC,
-        Position = self.LineStart.Position + Vector3.new(0, 0, (self.CustomerCount +1) * 3)
+        Position = self.LineStart.Position + Vector3.new(-(id * 3) - 9, 2.25, 0)
     })
 
     self.CustomerCount += 1
@@ -172,7 +172,7 @@ function self.NewCustomer(id : string , customerData)
 
     --[[INITIAL POSITION]]
     physicalNPC.Parent = workspace
-    physicalNPC:SetPrimaryPartCFrame(CFrame.new(self.LineStart.Position + Vector3.new(-(id * 3) - 9, 2.25, 0)))
+    physicalNPC:SetPrimaryPartCFrame(CFrame.new(self.LineStart.Position + Vector3.new(-(#self.CurrentCustomers * 3) - 5, 2.25, 0)))
 
     self.PizzaOrderPopup(id)
 
@@ -180,7 +180,7 @@ function self.NewCustomer(id : string , customerData)
 
     local Humanoid = physicalNPC:FindFirstChildOfClass("Humanoid")
     if Humanoid then
-        Humanoid:MoveTo(self.LineStart.Position + Vector3.new(-(id * 3) + 8, 0, 0))
+        Humanoid:MoveTo(self.LineStart.Position + Vector3.new(-(self.GetCustomerOrderById(id) * 3) + 6, 0, 0))
         Humanoid.MoveToFinished:Once(function(reached: boolean)
             anim:Stop()
             self.AnimateCustomer(physicalNPC, "Idle")
@@ -190,13 +190,21 @@ function self.NewCustomer(id : string , customerData)
 end
 
 --[=[
-    @function LeaveCustomer
+    @function GetCustomerOrderById
     @param id number
+    @return number
     @within CustomerReplication Render
 ]=]
-function self.LeaveCustomer(id)
+function self.GetCustomerOrderById(id: string) : number
 
+    for i, customer in ipairs(self.CurrentCustomers) do
+        if customer.Id == id then
+            return i
+        end
+    end
 
+    warn(`Customer with ID {id} not found`)
+    return 0
 
 end
 
@@ -207,15 +215,83 @@ end
 
     @param id number
 ]=]
-function self.RemovedCustomer(id)
+function self.RemovedCustomer(id : string)
+
+    local PhysicalNPC : Model? = nil
+
+    table.sort(self.CurrentCustomers, function(a, b)
+        return tonumber(a.Id) < tonumber(b.Id)
+    end)
+
+    print(`customers:`,self.CurrentCustomers)
 
     for i, customer in ipairs(self.CurrentCustomers) do
+        print(i, customer.Id, id)
         if customer.Id == id then
+            PhysicalNPC = customer.Model
             table.remove(self.CurrentCustomers, i)
             break
         end
     end
+
+    if not PhysicalNPC then
+        warn(`Customer with ID {id} not found`)
+        return
+    end
     
+    local Humanoid = PhysicalNPC:FindFirstChildOfClass("Humanoid")
+    local WalkAwayParts = workspace.WalkAwayParts
+
+    for i , customer in ipairs(self.CurrentCustomers) do
+        task.spawn(function()
+            self.UpdateCustomerPosition(customer.Id, self.LineStart.Position + Vector3.new(-(i * 3) + 6, 0, 0))
+        end)
+    end
+
+    local firstWalk = self.AnimateCustomer(PhysicalNPC, "Walk")
+    Humanoid:MoveTo(WalkAwayParts["1"].Position)
+    Humanoid.MoveToFinished:Wait()
+    Humanoid:MoveTo(WalkAwayParts["2"].Position)
+    Humanoid.MoveToFinished:Wait()
+
+    PhysicalNPC:Destroy()
+    firstWalk:Stop()
+
+    table.sort(self.CurrentCustomers, function(a, b)
+        return tonumber(a.Id) < tonumber(b.Id)
+    end)
+
+end
+
+--[=[
+    @function UpdateCustomerPosition
+    @param id number
+    @param position Vector3
+    @within CustomerReplication Render
+]=]
+function self.UpdateCustomerPosition(id: number, position: Vector3)
+
+    for _, customer in ipairs(self.CurrentCustomers) do
+        if customer.Id == id then
+            customer.Position = position
+
+            local walkingMethods = self.AnimateCustomer(customer.Model, "Walk")
+            
+            local humanoid = customer.Model:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid:MoveTo(position)
+                humanoid.MoveToFinished:Once(function(reached: boolean)
+                    walkingMethods:Stop()
+                    self.AnimateCustomer(customer.Model, "Idle")
+                end)
+            else
+                warn(`Humanoid not found for customer {id}`)
+            end
+
+            break
+        end
+    end
+
 end
 
 return self

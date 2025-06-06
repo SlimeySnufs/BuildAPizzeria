@@ -27,6 +27,10 @@ local Replication_3 = require(CustomerReplication.Main).Init()
 local ActionPadReplication = Replication.ActionPadReplication
 local Replication_4 = require(ActionPadReplication.Main).Init()
 
+--[[PIZZA REPLICATION / NETWORKING]]
+local PizzaPickUpReplication = Replication.PizzaPickupReplication
+local Replication_5 = require(PizzaPickUpReplication.Main).Init()
+
 print(`Replication initialized in {tick()-ReplicationStartTime}ms`)
 
 --[[USERINTERFACE]]

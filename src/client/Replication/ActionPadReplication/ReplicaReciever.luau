@@ -29,9 +29,12 @@ function self.ListenForNew()
     local Render = require(script.Parent.Render).Init()
 
     replica.OnNew(LocalPlayer.UserId..`ActionPad`, function(actionPadReplica : typeof(replica.New()))
+
+        for padID, padData in actionPadReplica.Data do
+            Render.AddToSpinHeartBeat(padID)
+        end
         
         actionPadReplica:OnChange(function(action : string, path : {string}, newValue : any, oldValue : any)
-            print(path, action, newValue, oldValue)
             if (action ~= "Set") then return end
             
             local padID = path[#path]
@@ -43,7 +46,6 @@ function self.ListenForNew()
             end
 
             Render.UpdateRender(padID, false)
-
         end)
 
     end)

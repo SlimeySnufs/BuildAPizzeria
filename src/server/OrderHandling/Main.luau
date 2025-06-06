@@ -1,6 +1,6 @@
 --[=[
     @class OrderHandling Main
-    @tag OrderHandling
+    @tag InteractiveHandler
 ]=]
 local self = {}
 
@@ -9,9 +9,7 @@ local self = {}
     @within OrderHandling Main
 ]=]
 function self.Init()
-    
-    local NPCGeneration = require(script.Parent.NPCGeneration).Init()
-
+    self.NPCGeneration = require(script.Parent.NPCGeneration).Init()
 end
 
 return self

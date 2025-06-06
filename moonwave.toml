@@ -57,8 +57,16 @@ section = "Client Customer Replication"
 tag = "CustomerReplication"
 
 [[classOrder]]
+section = "Client Pizza Replication"
+tag = "PizzaPickupReplication"
+
+[[classOrder]]
 section = "Order Handling"
 tag = "OrderHandling"
+
+[[classOrder]]
+section = "Interactive Handlers"
+tag = "InteractiveHandler"
 
 [docusaurus]
 onBrokenLinks = "throw"

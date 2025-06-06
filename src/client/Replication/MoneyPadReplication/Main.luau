@@ -12,8 +12,6 @@ local module = {}
     @within MoneyPadReplication Main
 ]=]
 function module.Init()
-
-    print(`ReplicaReciever for moneypad was initted!`)
     
     local ReplicaReciever = require(script.Parent.ReplicaReciever)
     ReplicaReciever.Init()

@@ -11,6 +11,14 @@ local replica = require(ReplicatedStorage.Packages.replica)
 
 local self = {}
 
+local function GetDictionaryLength(dict: {[any]: any}) : number
+    local count: number = 0
+    for _ in pairs(dict) do
+        count += 1
+    end
+    return count
+end
+
 --[=[
     @function Init
     Handles Connections and starting data
@@ -103,6 +111,10 @@ function self.GivePlayerCustomer(player : Player)
         RequestAmount = PizzasRequired,
     } :: CustomerData)
 
+    table.sort(self.NPCQueues[player.UserId], function(a: CustomerData, b: CustomerData)
+        return tonumber(a.ID) < tonumber(b.ID)
+    end)
+
     self.UniqueID += 1
 
 end
@@ -117,16 +129,29 @@ end
     @within NPCGeneration
 ]=]
 function self.HandleNextCustomer(player : Player) : (string , number , number)
+
+    print(self.NPCQueues[player.UserId])
     
-    local customerAmount: number = #self.NPCQueues[player.UserId]
+    local customerAmount: number = GetDictionaryLength(self.NPCQueues[player.UserId])
     if customerAmount <= 0 then
         warn(`empty customer line`)
         return
     end
 
-    local firstCustomerData : CustomerData = table.remove(self.NPCQueues[player.UserId],customerAmount)
+    local plrReplica = self.ReplicaCache[player]
+    if not(plrReplica) then
+        warn(`the replica for {player.Name} was not found`)
+        return
+    end
 
-    replica:Set({firstCustomerData.ID}, nil)
+    table.sort(self.NPCQueues[player.UserId], function(a: CustomerData, b: CustomerData)
+        return tonumber(a.ID) < tonumber(b.ID)
+    end)
+
+    local firstCustomerData : CustomerData = table.remove(self.NPCQueues[player.UserId],1)
+    print(firstCustomerData,plrReplica.Data)
+
+    plrReplica:Set({firstCustomerData.ID}, nil)
 
     local values : {[string] : number} = {
         ["Gold"] = 5,
@@ -134,6 +159,45 @@ function self.HandleNextCustomer(player : Player) : (string , number , number)
     }
 
     return firstCustomerData.customerType , firstCustomerData.RequestAmount , (values[firstCustomerData.customerType] * firstCustomerData.RequestAmount)
+
+end
+
+--[=[
+    @function GetNextCustomer
+    Gets the next customer for the player without removing them
+    @param player Player
+    @return string , number , number
+    @within NPCGeneration
+]=]
+function self.GetNextCustomer(player : Player) : (string , number , number)
+
+    if not(self.ReplicaCache[player]) then
+        warn(`the replica for {player.Name} was not found`)
+        return
+    end
+
+    table.sort(self.NPCQueues[player.UserId], function(a: CustomerData, b: CustomerData)
+        return tonumber(a.ID) < tonumber(b.ID)
+    end)
+
+    local customerAmount: number = GetDictionaryLength(self.NPCQueues[player.UserId])
+    if customerAmount <= 0 then
+        warn(`empty customer line`)
+        return
+    end
+
+    local firstCustomerData : CustomerData = self.NPCQueues[player.UserId][1]
+    if not(firstCustomerData) then
+        warn(`the first customer data was not found`)
+        return
+    end
+
+    local values : {[string] : number} = {
+        ["Gold"] = 5,
+        ["Normal"] = 2,
+    }
+
+    return {firstCustomerData.customerType , firstCustomerData.RequestAmount , (values[firstCustomerData.customerType] * firstCustomerData.RequestAmount)}
 
 end
 

@@ -220,13 +220,13 @@ function ProductionPad:PickUp(player : Player)
     local stack = self.ItemStack[player.UserId]
     if not stack or #stack <= 0 then
         warn(`nothing is in the players item stack`)
-        return
+        return false
     end
 
     local replica = self.ReplicaCache[player]
     if not replica then
         error(`The replica for {player.Name} wasn't found`)
-        return
+        return false
     end
 
     local profile = GetProfile.GetProfile(player)
@@ -240,6 +240,7 @@ function ProductionPad:PickUp(player : Player)
     
     replica:Set({self.ID, key}, nil)
     profile.Data["ProductionPads"][self.ID][key] = nil
+    return true
 end
 
 return ProductionPad

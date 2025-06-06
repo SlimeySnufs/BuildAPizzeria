@@ -60,15 +60,10 @@ function module.init()
             table.remove(PlayersInPad,playerInTableIndex)
         end)
         
-        local SUB_RATE = 5
+        local SUB_RATE = 2
 
         task.spawn(function()
             while task.wait(0.25) do
-                for _ , plr in Players:GetPlayers() do
-                    if not plr then continue end
-                    newMoneyPAD:AddMoneyOnPad(plr, 3)
-                end
-
                 for _ , player in PlayersInPad do
                     if not player then continue end
                     local amountOfMoneyInPad: number? = newMoneyPAD:GetMoneyOnPad(player)

@@ -22,8 +22,8 @@ local Signal = require(Lib.Signal)
 local Packages = ReplicatedStorage.Packages
 local Zone = require(Packages.zoneplus)
 
-local MoneyPad = Pads.Moneypad:Clone()
-
+local MoneyPad: Model = Pads.Moneypad:Clone()
+local MoneyPadCache = require(script.Parent.MoneypadCache)
 
 export type MoneyPad = typeof(setmetatable({}, moneyPad))
 
@@ -121,6 +121,8 @@ function moneyPad.new(id : string | number, cframe : CFrame) : MoneyPad
 
     self.PlayerEntered = Signal.new() :: typeof(Signal.new())
     self.PlayerExited = Signal.new() :: typeof(Signal.new())
+
+    MoneyPadCache[self.ID] = self
 
     return self
 

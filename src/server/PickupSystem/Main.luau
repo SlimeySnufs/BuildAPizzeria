@@ -1,9 +1,13 @@
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local RunService = game:GetService("RunService")
+
+local replica = require(ReplicatedStorage.Packages.replica)
 --[=[
     @class PickupSystem
     @server
-    @tag PickupSystem
+    @tag InteractiveHandler
 ]=]
 local self = {}
 
@@ -17,14 +21,39 @@ function self.Init()
         [Player] : {[string] : {Item : Instance, AboveHead : boolean, Position : number}}
     }
 
+    local PlacePizzaStackToken= replica.Token("PizzaStack")
+
+    self.PizzaStackReplica = replica.New({
+        Token = PlacePizzaStackToken,
+        Data = {} :: { [Player] : { [string] : {Item : Instance, AboveHead : boolean, Position : number} } }
+    })
+
+    self.PizzaStackReplica:Replicate()
+
     self.UpdateStackConnections = {} :: { [Player] : RBXScriptConnection }
 
-    Players.PlayerAdded:Connect(function(player : Player)
+    self.CurrentAnimations = {} :: { [Player] : string}
+    self.CurrentAnimationMethods = {} :: { [Player] : { Stop: () -> (), IsPlaying: () -> boolean } }
+
+    local function onJoin(player : Player)
         self.PickupStack[player] = {}
+        self.PizzaStackReplica:Set({player.UserId}, {})
+        self.PizzaStackReplica:Set({player.UserId,"Pizza"},{})
+        self.CurrentAnimations[player] = "Idle"
+    end
+
+    Players.PlayerAdded:Connect(function(player : Player)
+        onJoin(player)
     end)
+
+    for _, player in Players:GetPlayers() do
+        onJoin(player)
+    end
 
     Players.PlayerRemoving:Connect(function(player : Player)
         self.PickupStack[player] = nil
+        self.PizzaStackReplica:Set({player}, nil)
+        self.CurrentAnimations[player] = nil
     end)
 
     return self
@@ -55,6 +84,10 @@ function self.AnimatePlayerPickup(player: Player, animationType: string)
         return
     end
 
+    if self.CurrentAnimations[player] == animationType then
+        return
+    end
+
     local Humanoid: Humanoid? = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
     local Animator : Animator = Humanoid and Humanoid:FindFirstChild("Animator")
 
@@ -70,7 +103,9 @@ function self.AnimatePlayerPickup(player: Player, animationType: string)
     Animtrack.Priority = Enum.AnimationPriority.Action2
     Animtrack:Play()
 
-    return {
+    self.CurrentAnimations[player] = animationType
+
+    local methods = {
         Stop = function()
             if Animtrack then
                 Animtrack:Stop()
@@ -81,76 +116,10 @@ function self.AnimatePlayerPickup(player: Player, animationType: string)
             return Animtrack and Animtrack.IsPlaying or false
         end
     }
-end
 
---[=[
-    @function UpdatePlayerPickupStack
-    Updates the player's pickup stack with the current items in physical form
-    @param player Player
-    @return RBXScriptConnection
-    @within PickupSystem
-]=]
-function self.UpdatePlayerPickupStack(player: Player)
+    self.CurrentAnimationMethods[player] = methods
 
-    if not self.PickupStack[player] then
-        warn(`Player {player.Name} does not have a pickup stack initialized.`)
-        return
-    end
-
-    if self.UpdateStackConnections[player] then
-        self.UpdateStackConnections[player]:Disconnect()
-        self.UpdateStackConnections[player] = nil
-    end
-
-    local conn: RBXScriptConnection = RunService.Heartbeat:Connect(function(dt: number)
-    
-        --[[update the player's pickup stack depending on their hrp and position in the stack]]
-        if not self.PickupStack[player] then
-            warn(`Player {player.Name} does not have a pickup stack initialized.`)
-            return
-        end
-
-        local stack: { [string]: { AboveHead: boolean, Item: Instance, Position: number } } = self.PickupStack[player]
-
-        for itemName: string, items: { AboveHead: boolean, Item: Instance, Position: number } in pairs(stack) do
-        
-            --[[PLACE IN RIGHT SPOT, TWEEN A LITTLE BIT WITH LERP TO MAKE SMOOTH MOVEMENT, MAKE HIGHER THINGS TAKE MORE TIME TO MOVE TO CORRECT POSITION]]
-
-            local itemCount = GetDictionaryLength(items)
-
-            for i = 1, itemCount do
-                local itemData = items[i]
-                if not itemData then continue end
-
-                local item: Instance = itemData.Item
-                if not item or not item:IsA("BasePart") then
-                    warn(`Item {itemName} is not a valid BasePart.`)
-                    continue
-                end
-
-                item.Parent = player.Character 
-
-                local aboveHead: boolean = itemData.AboveHead
-                local position: number = itemData.Position
-
-                --[[Update the item's position based on the player's character and stack position]]
-                if player.Character and player.Character.PrimaryPart then
-                    local targetPosition = player.Character.Head.Position + Vector3.new(0, position * 0.25, 0)
-                    if aboveHead then
-                        targetPosition += Vector3.new(0, 0.25, 0) -- Adjust for above head
-                    end
-                    -- higher position items will take longer to move to the correct position 
-                    item.Position = (item.Position:Lerp(targetPosition, (dt * 20) * (1/position))) -- Adjust lerp speed as needed
-                end
-            end
-
-        end
-
-    end)
-
-    self.UpdateStackConnections[player] = conn
-
-    return conn
+    return methods
 end
 
 --[=[
@@ -158,19 +127,20 @@ end
     Checks if a player can pick up an item, the max is 5
     @param player Player
     @return boolean
+    @within PickupSystem
 ]=]
-function self.CanPickUp(player: Player): boolean
-    if not self.PickupStack[player] then
-        warn(`Player {player.Name} does not have a pickup stack initialized.`)
-        return false
+function self.CanPickUp(player: Player, itemName : string): boolean
+    if not self.PickupStack[player.UserId] then
+        self.PickupStack[player.UserId] = {}
+        self.PizzaStackReplica:Set({player.UserId}, {})
     end
 
-    local itemCount = 0
-    for _, items in pairs(self.PickupStack[player]) do
-        itemCount += 1
+    if not self.PickupStack[player.UserId][itemName] then
+        self.PickupStack[player.UserId][itemName] = {}
+        self.PizzaStackReplica:Set({player.UserId, itemName}, {})
     end
 
-    return itemCount < 3 -- Max 5 items can be picked up
+    return GetDictionaryLength(self.PickupStack[player.UserId][itemName]) < 15
 end
 
 --[=[
@@ -183,30 +153,134 @@ end
     @within PickupSystem
 ]=]
 function self.PickUp(player: Player, AboveHead: boolean, Item: Instance)
-    if not self.PickupStack[player] then
-        warn(`Player {player.Name} does not have a pickup stack initialized.`)
-        return
+    if not self.PickupStack[player.UserId] then
+        self.PickupStack[player.UserId] = {}
     end
-
-    local itemName = Item.Name
-    Item.CanCollide = false
-    if not self.PickupStack[player][itemName] then
-        self.PickupStack[player][itemName] = {}
-    end
-
-    local itemData = {
-        Item = Item,
-        AboveHead = AboveHead,
-        Position = #self.PickupStack[player][itemName] + 1
-    }
-
-    table.insert(self.PickupStack[player][itemName], itemData)
 
     self.AnimatePlayerPickup(player, "AboveHead")
-    self.UpdatePlayerPickupStack(player)
+
+    local itemName = Item.Name
+    local itemID = (itemName..tick()/10)
+    Item.CanCollide = false
+
+    if not(self.PickupStack[player.UserId]) then
+        self.PickupStack[player.UserId] = {}
+        self.PizzaStackReplica:Set({player.UserId}, {})
+    end
+
+    if not self.PickupStack[player.UserId][itemName] then
+        self.PickupStack[player.UserId][itemName] = {}
+        self.PizzaStackReplica:Set({player.UserId, itemName}, {})
+    end
+
+    print(`before:`,self.PizzaStackReplica.Data)
+
+    local itemData = {
+        ID = itemID,
+        Item = Item.Name,
+        AboveHead = AboveHead,
+        Position = GetDictionaryLength(self.PickupStack[player.UserId][itemName]) + 1
+    }
+
+    self.PickupStack[player.UserId][itemName][itemID] = itemData
+    self.PizzaStackReplica:Set({player.UserId, itemName, itemID}, itemData)
+
+    print(self.PizzaStackReplica.Data)
 
     print(`Player {player.Name} picked up {Item.Name} at position {itemData.Position}.`)
 end
 
+--[=[
+    @function RemoveTopItem
+    Removes an item from the player's pickup stack
+    @param player Player
+    @param itemName string
+    @return nil
+    @within PickupSystem
+]=]
+function self.RemoveTopItem(player: Player, itemName: string)
+    if not self.PickupStack[player.UserId] or not self.PickupStack[player.UserId][itemName] then
+        warn(`Player {player.Name} does not have item {itemName} in their pickup stack.`)
+        return
+    end
+
+    local itemData = table.remove(self.PickupStack[player][itemName], GetDictionaryLength(self.PickupStack[player][itemName]))
+    if not itemData then
+        warn(`No items found for {itemName} in player {player.Name}'s pickup stack.`)
+        return
+    end
+
+    self.PizzaStackReplica:Set({player.UserId, itemName, itemData.ID}, nil)
+
+    print(`Player {player.Name} removed {itemName} from their pickup stack.`)
+end
+
+--[=[
+    @function RemovePizzaAtPosition
+    Removes a pizza item at a specific position from the player's pickup stack
+    @param player Player
+    @param itemName string
+    @param position number
+    @return nil
+    @within PickupSystem
+]=]
+function self.RemovePizzaAtPosition(player: Player, itemName: string, position: number)
+    if not self.PickupStack[player.UserId] or not self.PickupStack[player.UserId][itemName] then
+        warn(`Player {player.Name} does not have item {itemName} in their pickup stack.`)
+        return
+    end
+
+    local itemData = nil
+    for id, data in self.PickupStack[player.UserId][itemName] do
+        if data.Position == position then
+            itemData = data
+            break
+        end
+    end
+
+    if not itemData then
+        return
+    end
+
+    self.PickupStack[player.UserId][itemName][itemData.ID] = nil
+    self.PizzaStackReplica:Set({player.UserId, itemName, itemData.ID}, nil)
+
+    local currentPosition = 1
+    for id, data in self.PickupStack[player.UserId][itemName] do
+        data.Position = currentPosition
+        self.PizzaStackReplica:Set({player.UserId, itemName, id}, data)
+        currentPosition += 1
+    end
+
+    if GetDictionaryLength(self.PickupStack[player.UserId][itemName]) == 0 then
+        self.CurrentAnimationMethods[player]:Stop()
+        self.CurrentAnimations[player] = "Idle"
+    end
+end
+
+--[=[
+    @function GetTopItem
+    Gets the top item from the player's pickup stack
+    @param player Player
+    @param itemName string
+    @within PickupSystem
+]=]
+function self.GetTopItem(player: Player, itemName: string)
+    if not self.PickupStack[player.UserId] or not self.PickupStack[player.UserId][itemName] then
+        warn(`Player {player.Name} does not have item {itemName} in their pickup stack.`)
+        return nil
+    end
+
+    local highest = 0
+    local item = nil
+    for id , itemData in self.PickupStack[player.UserId][itemName] do
+        if itemData.Position > highest then
+            highest = itemData.Position
+            item = itemData
+        end
+    end
+
+    return item
+end
 
 return self

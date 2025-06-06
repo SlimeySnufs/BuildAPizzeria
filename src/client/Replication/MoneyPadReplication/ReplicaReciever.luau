@@ -61,8 +61,6 @@ function self.ListenForNew()
         Render.UpdateRender(pad,amount)
     end
 
-    local startTime = tick()
-
     self.OnNewConnection = replica.OnNew(tostring(LocalPlayer.UserId).."MoneyPads", function(moneyPadReplica)
         self.MoneyPadReplica = moneyPadReplica
         
@@ -77,8 +75,6 @@ function self.ListenForNew()
                 updaterender(path[#path], newValue)
             end
         end)
-
-        print(`Took {tick() - startTime}ms to wait for MoneyPadReplica`)
 
     end)
 

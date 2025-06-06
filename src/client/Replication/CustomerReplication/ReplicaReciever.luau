@@ -25,13 +25,17 @@ end
 ]=]
 function self.ListenForNew()
 
-    print(`listening for replica`)
-
     local Render = require(script.Parent.Render).Init()
     
     replica.OnNew(tostring(Players.LocalPlayer.UserId) .. `Customer`, function(customerReplica)
 
         print(`replica recieved for {Players.LocalPlayer.Name}`)
+
+        for i , customerData in customerReplica.Data do
+            --[[RENDER EXISTING CUSTOMERS]]
+            local customerID : string = i
+            Render.NewCustomer(customerID, customerData)
+        end
         
         self.Replica = customerReplica
 
@@ -50,6 +54,7 @@ function self.ListenForNew()
             if (newValue == nil) then
                 --[REMOVED CUSTOMER]
                 local customerID : string = path[#path]
+                print(`Customer {customerID} removed`,path)
                 Render.RemovedCustomer(customerID)
             end
 

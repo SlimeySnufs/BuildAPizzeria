@@ -1,3 +1,4 @@
+local RunService = game:GetService("RunService")
 --[=[
     @class ActionPadReplication Render
     @client
@@ -10,6 +11,15 @@ local self = {}
     @within ActionPadReplication Render
 ]=]
 function self.Init()
+
+    self.SpinningParts = {} :: { [string]: BasePart }
+
+    self.SpinHeartBeat = RunService.Heartbeat:Connect(function(dt: number)
+        for _ , spinpart : BasePart in pairs(self.SpinningParts) do
+            spinpart.CFrame = spinpart.CFrame * CFrame.Angles(0, (dt * 2), 0) -- Spin the part
+        end
+    end)
+
     return self
 end
 
@@ -32,6 +42,20 @@ function self.UpdateRender(padID : string, isActive : boolean)
     end
 
     Decal.Color3 = Color3.fromRGB(255, 255, 255) -- Inactive color
+
+end
+
+--[=[
+    @function AddToSpinHeartBeat
+    @param padID string
+    @within ActionPadReplication Render
+]=]
+function self.AddToSpinHeartBeat(padID : string)
+    
+    local ActionPad = self.GetActionPad(padID)
+    if not ActionPad then return end
+
+    self.SpinningParts[padID] = ActionPad
 
 end
 

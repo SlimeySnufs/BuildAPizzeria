@@ -16,6 +16,8 @@ local Playtime = require(DataManipulation.Playtime)
 PhysiscsService:RegisterCollisionGroup("Player")
 PhysiscsService:RegisterCollisionGroup("Customer")
 PhysiscsService:CollisionGroupSetCollidable("Player", "Customer", false)
+PhysiscsService:CollisionGroupSetCollidable("Player", "Player", false)
+PhysiscsService:CollisionGroupSetCollidable("Customer", "Customer", false)
 
 --[[SERVICES]]
 local Services = script.Services

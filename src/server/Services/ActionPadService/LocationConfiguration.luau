@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 local replica = require(ReplicatedStorage.Packages.replica)
 local ActionPad = require(script.Parent.ActionPad)
@@ -10,34 +11,103 @@ local ActionPad = require(script.Parent.ActionPad)
 ]=]
 local self = {}
 
+local function GetDictionaryLength(dict : {any}) : number
+    local count = 0
+    for _ in pairs(dict) do
+        count += 1
+    end
+    return count
+end
+
 --[=[
     @function Init
     Initializes the ActionPadService, setting up necessary configurations and connections.
     @within ActionPad LocationConfiguration
 ]=]
 function self.Init()
+
+    local PickUpSystem = require(ServerScriptService.Server.PickupSystem.Main)
+    local NPCGeneration = require(ServerScriptService.Server.OrderHandling.NPCGeneration)
+    local Moneypad = require(ServerScriptService.Server.Services.MoneypadService.Moneypad)
+    local MoneypadCache : {[string] : Moneypad.MoneyPad} = require(ServerScriptService.Server.Services.MoneypadService.MoneypadCache)
     
     self.ReplicaCache = {} :: { [Player] : typeof(replica.New())}
 
     self.Locations = {
-        ["PizzaOrder"] = workspace.Part3
+        ["Part3"] = workspace.Part3
     } :: { [string] : BasePart }
+
+    self.FunctionBinds = {
+        ["Part3"] = function(player : Player)
+
+            local NextCustomerInfo = NPCGeneration.GetNextCustomer(player)
+            local PlayerPizzaStack = PickUpSystem.PickupStack[player.UserId]["Pizza"]
+
+            if (PlayerPizzaStack == nil) then
+                return
+            end
+
+            if (GetDictionaryLength(PlayerPizzaStack) < 1) then
+                return
+            end
+
+            local PizzasRequested = NextCustomerInfo[2]
+            local TotalMoney = NextCustomerInfo[3]
+
+            if (PizzasRequested > GetDictionaryLength(PlayerPizzaStack)) then
+                print(`not enough pizzas in stack, requested: {PizzasRequested}, available: {GetDictionaryLength(PlayerPizzaStack)}`)
+                return
+            end
+
+            local pizzaRemoved = 0
+            for pizzaID , pizzaData in PlayerPizzaStack do 
+                if (pizzaRemoved >= PizzasRequested) then
+                    break
+                end
+                PickUpSystem.RemovePizzaAtPosition(player, "Pizza", pizzaData.Position)
+                pizzaRemoved += 1
+            end
+
+            NPCGeneration.HandleNextCustomer(player)
+            MoneypadCache["Part1"]:AddMoneyOnPad(player, TotalMoney)
+
+        end
+    }
 
     self.ActionPads = {} :: { [string] : ActionPad.ActionPad }
 
     for _ , locationPart in self.Locations do
         local newActionPad : ActionPad.ActionPad = ActionPad.new(locationPart.Name, locationPart.CFrame)   
         self.ActionPads[locationPart.Name] = newActionPad
-    
-        newActionPad.PlayerEntered:Connect(function(plr : Player)
-            print(`start attempting order fill here`)
-        end)
-
-        newActionPad.PlayerExited:Connect(function(plr : Player)
-            print(`end order fill here`)
-        end)
-
     end
+
+    local function iterateActiveLists()
+        for name: string , actionpad : ActionPad.ActionPad in self.ActionPads do
+            local ActiveList : {[number] : {any}} = actionpad:GetActiveActors()
+            for plrUserId , IsActive in ActiveList do
+                
+                local player : Player? = Players:GetPlayerByUserId(plrUserId)
+                if not player then
+                    continue
+                end
+
+                if IsActive.Status and self.FunctionBinds[name] then
+                    self.FunctionBinds[name](player)
+                end
+            end
+        end
+    end
+
+    self.FunctionLoop = task.spawn(function()
+        while task.wait(2) do
+            local s: boolean , result = pcall(function()
+                iterateActiveLists()
+            end)
+            if not(s) then
+                warn(`Error iterating active lists: {result}`)
+            end
+        end
+    end)
 
     self.HandleReplicas()
 
@@ -82,7 +152,7 @@ function self.HandleReplicas()
         end
 
         for _ , actionpad : ActionPad.ActionPad in self.ActionPads do
-            actionpad:RemoveReplica(player,actionPadReplica)
+            actionpad:RemoveReplica(player)
         end
 
         self.ReplicaCache[player] = nil

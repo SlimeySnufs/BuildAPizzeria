@@ -10,7 +10,7 @@ local self = {}
 
 -- Constants
 local BILLS_PER_LAYER = 32 -- 4 x 8
-local BILLS_PER_AMOUNT = 3 -- 1 bill per 2 dollars
+local BILLS_PER_AMOUNT = 1 -- 1 bill per 2 dollars
 local GRID_WIDTH = 4
 local GRID_DEPTH = 8
 
@@ -29,7 +29,6 @@ self.CurrentRenders = {}
     @within MoneyPadRender
 ]=]
 function self.Init()
-    print("[MoneyPadRender] Initialized")
     self.CurrentRenders = {}
     return self
 end
@@ -143,6 +142,8 @@ function self.UpdateRender(padName: string, amount: number)
         local z = math.floor(posInLayer / GRID_WIDTH)
 
         local bill = ReplicatedStorage.Assets.Cash:Clone()
+        bill.CanCollide = false
+        bill.Anchored = true
         local offset = CFrame.new(
             (x - GRID_WIDTH / 2 + 0.5) * size.X,
             layer * size.Y,

@@ -141,6 +141,16 @@ function ActionPad:CreateHitbox() : BasePart
 end
 
 --[=[
+    @method GetActiveActors
+    Returns a table of active actors on the ActionPad
+    @return { [number] : {Status : boolean, Actor : ("Player" | "Worker" | nil)} }
+    @within ActionPad
+]=]
+function ActionPad:GetActiveActors() : { [number] : {Status : boolean, Actor : ("Player" | "Worker" | nil)} }
+    return self.IsActive
+end
+
+--[=[
     @method GiveReplica
     Gives a replica to the ActionPad, allowing it to interact with the player
 

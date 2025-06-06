@@ -72,11 +72,12 @@ function module.init()
                 end
 
                 for _ , plr : Player in playersInPad do
-                    if not PickupSystem.CanPickUp(plr) then
-                        continue
+                    if PickupSystem.CanPickUp(plr,"Pizza") then
+                        local pickedUp : boolean = newProductionPad:PickUp(plr)
+                        if pickedUp then
+                            PickupSystem.PickUp(plr, "Pizza", ReplicatedStorage.Assets.Pizza:Clone())
+                        end
                     end
-                    newProductionPad:PickUp(plr)
-                    PickupSystem.PickUp(plr, "AboveHead", ReplicatedStorage.Assets.Pizza:Clone())
                 end
 
             end
