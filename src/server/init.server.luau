@@ -22,6 +22,13 @@ PhysiscsService:CollisionGroupSetCollidable("Customer", "Customer", false)
 --[[SERVICES]]
 local Services = script.Services
 
+--[[PLAYER STATE MANANGER]]
+local PlayerStateManager = script.PlayerStateHandler
+local PlayerStateManagerMain = require(PlayerStateManager.PlayerStateManager).Init()
+
+--[[ANIMATION HANDLER]]
+local AnimationHandlerMain = require(PlayerStateManager.AnimationHandler).Init()
+
 --[[MONEYPAD SERVICE]]
 local MoneypadService = Services.MoneypadService
 local MoneyPadLocationConfig = require(MoneypadService.LocationConfiguration).init()
@@ -35,11 +42,19 @@ local ActionPadService = Services.ActionPadService
 local ActionPadLocationConfig = require(ActionPadService.LocationConfiguration).Init()
 
 --[[CUSTOMER HANDLING]]
-local OrderHandling = script.OrderHandling
+local OrderHandling = script.InteractiveHandlers.OrderHandling
 local OrderHandlingMain = require(OrderHandling.Main).Init()
 
+--[[RESOURCE NODE SERVICE]]
+local ResourceNodeService = Services.ResourceNodeService
+local ResourceNodeLocationConfig = require(ResourceNodeService.LocationConfiguration).Init()
+
+--[[NODE HARVESTING]]
+local NodeHarvesting = script.InteractiveHandlers.NodeHarvesting
+local NodeHarvestingMain = require(NodeHarvesting.Main).Init()
+
 --[[PICKUP SYSTEM]]
-local PickupSystem = script.PickupSystem
+local PickupSystem = script.InteractiveHandlers.PickupSystem
 local PickupSystemMain = require(PickupSystem.Main).Init()
 
 local Types = require(ServerScriptService.Server.Types)

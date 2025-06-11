@@ -6,6 +6,10 @@ debug.setmemorycategory("Client")
 local Data = script.Data
 local DataMain = require(Data.Main).Init()
 
+--[[SCENES]]
+local Scenes = script.Scenes
+local SceneMain = require(Scenes.Main).Init()
+
 local ReplicationStartTime = tick()
 
 --[[REPLICATION DIRECTORY]]
@@ -31,11 +35,19 @@ local Replication_4 = require(ActionPadReplication.Main).Init()
 local PizzaPickUpReplication = Replication.PizzaPickupReplication
 local Replication_5 = require(PizzaPickUpReplication.Main).Init()
 
+--[[RESOURCE NODE REPLICATION]]
+local ResourceNodeReplication = Replication.ResourceNodeReplication
+local Replication_6 = require(ResourceNodeReplication.Main).Init()
+
 print(`Replication initialized in {tick()-ReplicationStartTime}ms`)
 
 --[[USERINTERFACE]]
 local UserInterface = script.UserInterface
-local UserInterfaceMain = require(UserInterface.Main).Init()
+local s, UserInterfaceMain = pcall(function()
+    task.spawn(function()
+        require(UserInterface.Main).Init()
+    end)
+end)
 
-debug.profileend("Client Loading")
+debug.profileend()
 print(`Client initialized in {tick()-startTime}ms`)

@@ -27,9 +27,24 @@ local self = {}
 function self.Init()
     replica.Init()
 
-    local label = Bottom.CashLabel.TextLabel
-    if label and label:IsA("TextLabel") then
-        self.BindLabelToCurrency("Cash", label, {"Cash"}, true, "$")
+    local cashlabel = Bottom.CashLabel.TextLabel
+    if cashlabel and cashlabel:IsA("TextLabel") then
+        self.BindLabelToCurrency("Cash", cashlabel, {"Cash"}, cashlabel, "$")
+    end
+
+    local wheatLabel = Bottom.Resources.Wheat.Amount
+    if wheatLabel then
+        self.BindLabelToCurrency("Wheat", wheatLabel, {"Resources","Wheat"}, wheatLabel.Parent)
+    end
+
+    local tomatoLabel = Bottom.Resources.Tomato.Amount
+    if tomatoLabel then
+        self.BindLabelToCurrency("Tomato", tomatoLabel, {"Resources","Tomato"}, tomatoLabel.Parent)
+    end
+
+    local porkLabel = Bottom.Resources.Pork.Amount
+    if porkLabel then
+        self.BindLabelToCurrency("Pork", porkLabel, {"Resources","Pork"}, porkLabel.Parent)
     end
 
     return self
@@ -50,17 +65,18 @@ end
 
     @error INVALID_LABEL -- Label must be a valid TextLabel.
 ]=]
-function self.BindLabelToCurrency(Currency: string, Label: TextLabel, DataPath: {string}, RollingEffect: boolean, Affix: string?)
+function self.BindLabelToCurrency(Currency: string, Label: TextLabel, DataPath: {string}, RollingEffect: Instance?, Affix: string?)
     assert(Label and Label:IsA("TextLabel"), "INVALID_LABEL")
+    assert(RollingEffect:IsA("TextLabel") or RollingEffect:IsA("ImageLabel") or RollingEffect:IsA("Frame"), `INVALID ROLLING EFFECT INSTANCE`)
 
     local updateQueue = {}
     local animating = false
     Affix = Affix or ""
 
-    local originalSize = Label.Size
+    local originalSize = RollingEffect.Size
     local bumpSize = originalSize + UDim2.new(0.1, 0, 0.1, 0)
 
-    local bumpTween = TweenService:Create(Label, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, true), {
+    local bumpTween = TweenService:Create(RollingEffect, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, true), {
         Size = bumpSize
     })
 
@@ -128,10 +144,24 @@ function self.BindLabelToCurrency(Currency: string, Label: TextLabel, DataPath: 
         runQueue()
     end)
 
+    repeat 
+        task.wait(0.2)
+    until replica.Data and replica.Data["Resources"] 
+
     task.spawn(function()
-        task.wait(3)
         local data = replica.Data
+
+        for i = 1 , #DataPath - 1 do 
+            data = data[DataPath[i]]
+        end
+
         if data and data[Currency] ~= nil then
+            updateLabel(data[Currency])
+        else
+            repeat
+                task.wait(0.5)
+                print(`waiting`)
+            until data and data[Currency] ~= nil
             updateLabel(data[Currency])
         end
     end)

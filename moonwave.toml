@@ -29,16 +29,16 @@ section = "Actionpad Service"
 tag = "ActionPadService"
 
 [[classOrder]]
+section = "Resource Node Service"
+tag = "ResourceNodeService"
+
+[[classOrder]]
 section = "Client Data"
 tag = "ClientData"
 
 [[classOrder]]
 section = "UserInterface"
 tag = "UserInterface"
-
-[[classOrder]]
-section = "Signal"
-tag = "Signal"
 
 [[classOrder]]
 section = "Client MoneyPad Replication"
@@ -61,8 +61,8 @@ section = "Client Pizza Replication"
 tag = "PizzaPickupReplication"
 
 [[classOrder]]
-section = "Order Handling"
-tag = "OrderHandling"
+section = "Player State Handler"
+tag = "PlayerStateHandler"
 
 [[classOrder]]
 section = "Interactive Handlers"

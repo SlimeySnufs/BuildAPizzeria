@@ -1,17 +1,16 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-
 local replica = require(ReplicatedStorage.Packages.replica)
+
 --[=[
     @class NPCGeneration
     @server
-    @tag OrderHandling
+    @tag InteractiveHandler
 ]=]
 
 local self = {}
 
-local function GetDictionaryLength(dict: {[any]: any}) : number
+local function GetDictionaryLength(dict: {[any] : any}) : number
     local count: number = 0
     for _ in pairs(dict) do
         count += 1
@@ -30,8 +29,7 @@ function self.Init()
     self.ReplicaCache = {}
     self.UniqueID = 0
 
-    Players.PlayerAdded:Connect(function(player : Player)
-
+    local function OnJoin(player : Player)
         local _ = player.Character or player.CharacterAdded:Wait()
 
         local plrToken = replica.Token(tostring(player.UserId)..`Customer`)
@@ -45,6 +43,11 @@ function self.Init()
 
         self.NPCQueues[player.UserId] = {}
         self.ReplicaCache[player] = NPCReplica
+
+    end
+
+    Players.PlayerAdded:Connect(function(player : Player)
+        OnJoin(player)
     end)
     
     Players.PlayerRemoving:Connect(function(player : Player)
@@ -59,8 +62,14 @@ function self.Init()
         self.ReplicaCache[player] = nil
         self.NPCQueues[player.UserId] = nil
     end)
+    
+    for _ , plr in Players:GetPlayers() do
+        OnJoin(plr)
+    end
 
     self.HandleCustomerLoop()
+
+    return self
 
 end
 
@@ -210,7 +219,7 @@ function self.HandleCustomerLoop()
     
     task.spawn(function()
 
-        while task.wait(2) do
+        while task.wait(5) do
             for _ , plr: Player in Players:GetPlayers() do
                 local s, result = pcall(function()
                     self.GivePlayerCustomer(plr)

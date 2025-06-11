@@ -56,7 +56,7 @@ end
 --[=[
     @class Connection
     @__index Connection
-    @tag Signal
+    @tag Lib
     A connection to a signal handler. This is returned by Signal:Connect(fn).
     @server
 ]=]
@@ -81,7 +81,7 @@ function Connection.new(signal, fn)
 end
 
 --[=[
-    @method Connection:Disconnect
+    @method Disconnect
     @within Connection
     Disconnects the connection from the signal. After this call, the handler
     will no longer be called when the signal is fired.
@@ -119,7 +119,7 @@ setmetatable(Connection, {
 --[=[
     @class Signal
     @__index Signal
-    @tag Signal
+    @tag Lib
     A signal that can be connected to and fired. This is a batched yield-safe
     signal implementation.
     @server
@@ -128,7 +128,7 @@ local Signal = {}
 Signal.__index = Signal
 
 --[=[
-    @function Signal.new
+    @function new
     @within Signal
     Creates a new signal.
     @return Signal
@@ -140,7 +140,7 @@ function Signal.new()
 end
 
 --[=[
-    @method Signal:Connect
+    @method Connect
     @within Signal
     Connects a function to the signal. The function will be called when the
     signal is fired.
@@ -159,7 +159,7 @@ function Signal:Connect(fn)
 end
 
 --[=[
-    @method Signal:DisconnectAll
+    @method DisconnectAll
     @within Signal
     Disconnects all handlers from the signal. After this call, no handlers will
     be called when the signal is fired.
@@ -169,7 +169,7 @@ function Signal:DisconnectAll()
 end
 
 --[=[
-    @method Signal:Fire
+    @method Fire
     @within Signal
     Fires the signal, calling all connected handlers with the given arguments.
     @param ... any 
@@ -190,7 +190,7 @@ function Signal:Fire(...)
 end
 
 --[=[
-    @method Signal:Wait
+    @method Wait
     @within Signal
     Waits for the signal to be fired and returns the arguments passed to the
     handlers.

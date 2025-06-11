@@ -26,8 +26,8 @@ end
 ]=]
 function self.Init()
 
-    local PickUpSystem = require(ServerScriptService.Server.PickupSystem.Main)
-    local NPCGeneration = require(ServerScriptService.Server.OrderHandling.NPCGeneration)
+    local PickUpSystem = require(ServerScriptService.Server.InteractiveHandlers.PickupSystem.Main)
+    local NPCGeneration = require(ServerScriptService.Server.InteractiveHandlers.OrderHandling.NPCGeneration)
     local Moneypad = require(ServerScriptService.Server.Services.MoneypadService.Moneypad)
     local MoneypadCache : {[string] : Moneypad.MoneyPad} = require(ServerScriptService.Server.Services.MoneypadService.MoneypadCache)
     
@@ -41,6 +41,12 @@ function self.Init()
         ["Part3"] = function(player : Player)
 
             local NextCustomerInfo = NPCGeneration.GetNextCustomer(player)
+
+            if not(NextCustomerInfo) then
+                print(`mt line or issue:`,NextCustomerInfo)
+                return
+            end
+
             local PlayerPizzaStack = PickUpSystem.PickupStack[player.UserId]["Pizza"]
 
             if (PlayerPizzaStack == nil) then
@@ -119,8 +125,7 @@ end
 ]=]
 function self.HandleReplicas()
     
-    Players.PlayerAdded:Connect(function(player : Player)
-        
+    local function OnJoin(player : Player)
         local _ = player.Character or player.CharacterAdded:Wait()
 
         local plrToken = replica.Token(tostring(player.UserId) .. `ActionPad`)
@@ -142,10 +147,9 @@ function self.HandleReplicas()
                 Actor = nil
             })
         end
+    end
 
-    end)
-
-    Players.PlayerRemoving:Connect(function(player : Player)
+    local function OnLeave(player: Player)
         if not self.ReplicaCache[player] then
             warn(`Replica for {player.Name} not found`)
             return
@@ -156,6 +160,24 @@ function self.HandleReplicas()
         end
 
         self.ReplicaCache[player] = nil
+    end
+
+    Players.PlayerAdded:Connect(function(player : Player)
+        OnJoin(player)
+    end)
+
+    Players.PlayerRemoving:Connect(function(player : Player)
+        OnLeave(player)
+    end)
+
+    for _ , player in Players:GetPlayers() do
+        OnJoin(player)
+    end
+
+    game:BindToClose(function()
+        for _ , player in Players:GetPlayers() do
+            OnLeave(player)
+        end
     end)
 
 end

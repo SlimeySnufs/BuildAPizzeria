@@ -2,14 +2,18 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local RunService = game:GetService("RunService")
+local ServerScriptService = game:GetService("ServerScriptService")
 
+local AnimationHandler = require(ServerScriptService.Server.PlayerStateHandler.AnimationHandler)
 local replica = require(ReplicatedStorage.Packages.replica)
+
 --[=[
     @class PickupSystem
     @server
     @tag InteractiveHandler
 ]=]
 local self = {}
+local PlayerStateManager = require(ServerScriptService.Server.PlayerStateHandler.PlayerStateManager)
 
 --[=[
     @function Init
@@ -31,15 +35,12 @@ function self.Init()
     self.PizzaStackReplica:Replicate()
 
     self.UpdateStackConnections = {} :: { [Player] : RBXScriptConnection }
-
     self.CurrentAnimations = {} :: { [Player] : string}
-    self.CurrentAnimationMethods = {} :: { [Player] : { Stop: () -> (), IsPlaying: () -> boolean } }
 
     local function onJoin(player : Player)
         self.PickupStack[player] = {}
         self.PizzaStackReplica:Set({player.UserId}, {})
         self.PizzaStackReplica:Set({player.UserId,"Pizza"},{})
-        self.CurrentAnimations[player] = "Idle"
     end
 
     Players.PlayerAdded:Connect(function(player : Player)
@@ -59,10 +60,6 @@ function self.Init()
     return self
 end
 
-local Animations = {
-    AboveHead = "rbxassetid://85253249744129" -- Replace with actual animation ID
-}
-
 local function GetDictionaryLength(dict : {[any] : any}) : number
     local count = 0
     for _ in pairs(dict) do
@@ -70,58 +67,6 @@ local function GetDictionaryLength(dict : {[any] : any}) : number
     end
     return count
 end
-
---[=[
-    @function AnimatePlayerPickup
-    Animates the pickup of an item by a player
-    @param player Player
-    @param animationType ("AboveHead")
-    @within PickupSystem
-]=]
-function self.AnimatePlayerPickup(player: Player, animationType: string)
-    if not(Animations[animationType]) then
-        warn(`Animation type {animationType} is not defined correct.`)
-        return
-    end
-
-    if self.CurrentAnimations[player] == animationType then
-        return
-    end
-
-    local Humanoid: Humanoid? = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-    local Animator : Animator = Humanoid and Humanoid:FindFirstChild("Animator")
-
-    local Animation = Instance.new("Animation")
-    Animation.AnimationId = Animations[animationType]
-    if not Animator then
-        warn(`Animator not found for player {player.Name}.`)
-        return
-    end
-
-    local Animtrack = Animator:LoadAnimation(Animation)
-    Animtrack.Looped = true
-    Animtrack.Priority = Enum.AnimationPriority.Action2
-    Animtrack:Play()
-
-    self.CurrentAnimations[player] = animationType
-
-    local methods = {
-        Stop = function()
-            if Animtrack then
-                Animtrack:Stop()
-            end
-        end,
-
-        IsPlaying = function()
-            return Animtrack and Animtrack.IsPlaying or false
-        end
-    }
-
-    self.CurrentAnimationMethods[player] = methods
-
-    return methods
-end
-
 --[=[
     @function CanPickUp
     Checks if a player can pick up an item, the max is 5
@@ -157,7 +102,17 @@ function self.PickUp(player: Player, AboveHead: boolean, Item: Instance)
         self.PickupStack[player.UserId] = {}
     end
 
-    self.AnimatePlayerPickup(player, "AboveHead")
+    local CurrentPlayerState: {string} = PlayerStateManager.GetPlayerState(player)
+    if not table.find(CurrentPlayerState, "HoldingPizza") then
+        --not picking up anything right now
+        local ChangedState : boolean, PreviousState : {string} = PlayerStateManager.AttemptStateChange(player, "HoldingPizza")
+        if not(ChangedState) then
+            warn(`cant change state from:`, PreviousState)
+            return
+        end
+    end
+
+    self.CurrentAnimations[player] = AnimationHandler.AnimatePlayer(player, "PickingUp", true)
 
     local itemName = Item.Name
     local itemID = (itemName..tick()/10)
@@ -173,8 +128,6 @@ function self.PickUp(player: Player, AboveHead: boolean, Item: Instance)
         self.PizzaStackReplica:Set({player.UserId, itemName}, {})
     end
 
-    print(`before:`,self.PizzaStackReplica.Data)
-
     local itemData = {
         ID = itemID,
         Item = Item.Name,
@@ -185,9 +138,6 @@ function self.PickUp(player: Player, AboveHead: boolean, Item: Instance)
     self.PickupStack[player.UserId][itemName][itemID] = itemData
     self.PizzaStackReplica:Set({player.UserId, itemName, itemID}, itemData)
 
-    print(self.PizzaStackReplica.Data)
-
-    print(`Player {player.Name} picked up {Item.Name} at position {itemData.Position}.`)
 end
 
 --[=[
@@ -212,7 +162,6 @@ function self.RemoveTopItem(player: Player, itemName: string)
 
     self.PizzaStackReplica:Set({player.UserId, itemName, itemData.ID}, nil)
 
-    print(`Player {player.Name} removed {itemName} from their pickup stack.`)
 end
 
 --[=[
@@ -253,8 +202,9 @@ function self.RemovePizzaAtPosition(player: Player, itemName: string, position: 
     end
 
     if GetDictionaryLength(self.PickupStack[player.UserId][itemName]) == 0 then
-        self.CurrentAnimationMethods[player]:Stop()
-        self.CurrentAnimations[player] = "Idle"
+        self.CurrentAnimations[player]:Stop()
+        self.CurrentAnimations[player] = AnimationHandler.AnimatePlayer(player,"Idle",true)
+        PlayerStateManager.AttemptStateChange(player, "None", "HoldingPizza")
     end
 end
 

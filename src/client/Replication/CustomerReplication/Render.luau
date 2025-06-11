@@ -190,6 +190,24 @@ function self.NewCustomer(id : string , customerData)
 end
 
 --[=[
+    @function GetPizzaPopupById
+    @param id number
+    @return BillboardGui?
+    @within CustomerReplication Render
+]=]
+function self.GetPizzaPopupById(id: string) : BillboardGui?
+
+    local popup = PlayerGui.BillboardUI:FindFirstChild(`customer_{id}_popup`)
+    if popup and popup:IsA("BillboardGui") then
+        return popup
+    end
+
+    warn(`Pizza popup for customer {id} not found`)
+    return nil
+
+end
+
+--[=[
     @function GetCustomerOrderById
     @param id number
     @return number
@@ -225,10 +243,27 @@ function self.RemovedCustomer(id : string)
 
     print(`customers:`,self.CurrentCustomers)
 
+    local pizzapopup = nil
+
     for i, customer in ipairs(self.CurrentCustomers) do
         print(i, customer.Id, id)
         if customer.Id == id then
             PhysicalNPC = customer.Model
+
+            local popup: BillboardGui? = self.GetPizzaPopupById(id)
+
+            if not(popup) then
+                warn(`Pizza popup for customer {id} not found`)
+                return
+            end
+
+            popup.Bubble.DoneImage.Visible = true
+            popup.Bubble.Amount.Visible = false
+            popup.Bubble.DoneColor.Enabled = true
+
+            pizzapopup = popup
+
+
             table.remove(self.CurrentCustomers, i)
             break
         end
@@ -254,6 +289,7 @@ function self.RemovedCustomer(id : string)
     Humanoid:MoveTo(WalkAwayParts["2"].Position)
     Humanoid.MoveToFinished:Wait()
 
+    pizzapopup:Destroy()
     PhysicalNPC:Destroy()
     firstWalk:Stop()
 

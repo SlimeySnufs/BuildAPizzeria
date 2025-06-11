@@ -12,7 +12,7 @@ local GetProfile = require(ServerScriptService.Server.DataManipulation.GetProfil
 local replica = require(ReplicatedStorage.Packages.replica)
 local ProductionPad = require(script.Parent.ProductionPad)
 
-local PickupSystem = require(script.Parent.Parent.Parent.PickupSystem.Main)
+local PickupSystem = require(ServerScriptService.Server.InteractiveHandlers.PickupSystem.Main)
 
 --[=[
     @function init

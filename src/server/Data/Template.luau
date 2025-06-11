@@ -16,6 +16,12 @@ local template = {
     ItemsGenerated = 0,
     ProductionPads = {
 
+    },
+
+    Resources = {
+        Wheat = 0,
+        Tomato = 0,
+        Pork = 0,
     }
 
 }
