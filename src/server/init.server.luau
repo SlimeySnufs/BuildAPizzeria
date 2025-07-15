@@ -22,40 +22,61 @@ PhysiscsService:CollisionGroupSetCollidable("Customer", "Customer", false)
 --[[SERVICES]]
 local Services = script.Services
 
---[[PLAYER STATE MANANGER]]
-local PlayerStateManager = script.PlayerStateHandler
-local PlayerStateManagerMain = require(PlayerStateManager.PlayerStateManager).Init()
+--[[PARALLEL SERVICES INITIALIZATION]]
+-- Parallelize services for faster server startup
+task.spawn(function()
+    --[[PLAYER STATE MANANGER]]
+    local PlayerStateManager = script.PlayerStateHandler
+    require(PlayerStateManager.PlayerStateManager).Init()
+end)
 
---[[ANIMATION HANDLER]]
-local AnimationHandlerMain = require(PlayerStateManager.AnimationHandler).Init()
+task.spawn(function()
+    --[[ANIMATION HANDLER]]
+    local PlayerStateManager = script.PlayerStateHandler
+    require(PlayerStateManager.AnimationHandler).Init()
+end)
 
---[[MONEYPAD SERVICE]]
-local MoneypadService = Services.MoneypadService
-local MoneyPadLocationConfig = require(MoneypadService.LocationConfiguration).init()
+task.spawn(function()
+    --[[MONEYPAD SERVICE]]
+    local MoneypadService = Services.MoneypadService
+    require(MoneypadService.LocationConfiguration).init()
+end)
 
---[[PRODUCTIONPAD SERVICE]]
-local ProductionPadService = Services.ProductionPadService
-local ProducionPadLocationConfig = require(ProductionPadService.LocationConfiguration).init()
+task.spawn(function()
+    --[[PRODUCTIONPAD SERVICE]]
+    local ProductionPadService = Services.ProductionPadService
+    require(ProductionPadService.LocationConfiguration).init()
+end)
 
---[[ACTIONPAD SERVICE]]
-local ActionPadService = Services.ActionPadService
-local ActionPadLocationConfig = require(ActionPadService.LocationConfiguration).Init()
+task.spawn(function()
+    --[[ACTIONPAD SERVICE]]
+    local ActionPadService = Services.ActionPadService
+    require(ActionPadService.LocationConfiguration).Init()
+end)
 
---[[CUSTOMER HANDLING]]
-local OrderHandling = script.InteractiveHandlers.OrderHandling
-local OrderHandlingMain = require(OrderHandling.Main).Init()
+task.spawn(function()
+    --[[CUSTOMER HANDLING]]
+    local OrderHandling = script.InteractiveHandlers.OrderHandling
+    require(OrderHandling.Main).Init()
+end)
 
---[[RESOURCE NODE SERVICE]]
-local ResourceNodeService = Services.ResourceNodeService
-local ResourceNodeLocationConfig = require(ResourceNodeService.LocationConfiguration).Init()
+task.spawn(function()
+    --[[RESOURCE NODE SERVICE]]
+    local ResourceNodeService = Services.ResourceNodeService
+    require(ResourceNodeService.LocationConfiguration).Init()
+end)
 
---[[NODE HARVESTING]]
-local NodeHarvesting = script.InteractiveHandlers.NodeHarvesting
-local NodeHarvestingMain = require(NodeHarvesting.Main).Init()
+task.spawn(function()
+    --[[NODE HARVESTING]]
+    local NodeHarvesting = script.InteractiveHandlers.NodeHarvesting
+    require(NodeHarvesting.Main).Init()
+end)
 
---[[PICKUP SYSTEM]]
-local PickupSystem = script.InteractiveHandlers.PickupSystem
-local PickupSystemMain = require(PickupSystem.Main).Init()
+task.spawn(function()
+    --[[PICKUP SYSTEM]]
+    local PickupSystem = script.InteractiveHandlers.PickupSystem
+    require(PickupSystem.Main).Init()
+end)
 
 local Types = require(ServerScriptService.Server.Types)
 
