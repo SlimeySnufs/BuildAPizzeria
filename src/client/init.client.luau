@@ -15,31 +15,45 @@ local ReplicationStartTime = tick()
 --[[REPLICATION DIRECTORY]]
 local Replication = script.Replication
 
---[[MONEYPAD REPLICATION / NETWORKING]]
-local MoneyPadReplication = Replication.MoneyPadReplication
-local ReplicationMain = require(MoneyPadReplication.Main).Init()
+--[[PARALLEL REPLICATION INITIALIZATION]]
+-- Parallelize all replication modules for faster loading
+task.spawn(function()
+    --[[MONEYPAD REPLICATION / NETWORKING]]
+    local MoneyPadReplication = Replication.MoneyPadReplication
+    require(MoneyPadReplication.Main).Init()
+end)
 
---[[PRODUCTIONPAD REPLICATION / NETWORKING]]
-local ProductionPadReplication= Replication.ProductionPadReplication
-local ReplicationMain_2 = require(ProductionPadReplication.Main).Init()
+task.spawn(function()
+    --[[PRODUCTIONPAD REPLICATION / NETWORKING]]
+    local ProductionPadReplication= Replication.ProductionPadReplication
+    require(ProductionPadReplication.Main).Init()
+end)
 
---[[CUSTOMER REPLICATION / NETWORKING]]
-local CustomerReplication = Replication.CustomerReplication
-local Replication_3 = require(CustomerReplication.Main).Init()
+task.spawn(function()
+    --[[CUSTOMER REPLICATION / NETWORKING]]
+    local CustomerReplication = Replication.CustomerReplication
+    require(CustomerReplication.Main).Init()
+end)
 
---[[ACTIONPAD REPLICATION / NETWORKING]]
-local ActionPadReplication = Replication.ActionPadReplication
-local Replication_4 = require(ActionPadReplication.Main).Init()
+task.spawn(function()
+    --[[ACTIONPAD REPLICATION / NETWORKING]]
+    local ActionPadReplication = Replication.ActionPadReplication
+    require(ActionPadReplication.Main).Init()
+end)
 
---[[PIZZA REPLICATION / NETWORKING]]
-local PizzaPickUpReplication = Replication.PizzaPickupReplication
-local Replication_5 = require(PizzaPickUpReplication.Main).Init()
+task.spawn(function()
+    --[[PIZZA REPLICATION / NETWORKING]]
+    local PizzaPickUpReplication = Replication.PizzaPickupReplication
+    require(PizzaPickUpReplication.Main).Init()
+end)
 
---[[RESOURCE NODE REPLICATION]]
-local ResourceNodeReplication = Replication.ResourceNodeReplication
-local Replication_6 = require(ResourceNodeReplication.Main).Init()
+task.spawn(function()
+    --[[RESOURCE NODE REPLICATION]]
+    local ResourceNodeReplication = Replication.ResourceNodeReplication
+    require(ResourceNodeReplication.Main).Init()
+end)
 
-print(`Replication initialized in {tick()-ReplicationStartTime}ms`)
+print(`Replication modules started in parallel in {tick()-ReplicationStartTime}ms`)
 
 --[[USERINTERFACE]]
 local UserInterface = script.UserInterface
