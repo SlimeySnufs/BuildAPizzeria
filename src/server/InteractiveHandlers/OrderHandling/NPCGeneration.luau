@@ -139,8 +139,6 @@ end
 ]=]
 function self.HandleNextCustomer(player : Player) : (string , number , number)
 
-    print(self.NPCQueues[player.UserId])
-    
     local customerAmount: number = GetDictionaryLength(self.NPCQueues[player.UserId])
     if customerAmount <= 0 then
         warn(`empty customer line`)
@@ -158,7 +156,6 @@ function self.HandleNextCustomer(player : Player) : (string , number , number)
     end)
 
     local firstCustomerData : CustomerData = table.remove(self.NPCQueues[player.UserId],1)
-    print(firstCustomerData,plrReplica.Data)
 
     plrReplica:Set({firstCustomerData.ID}, nil)
 
