@@ -103,8 +103,8 @@ function ResourceNode:RemoveReplica(player: Player)
 end
 
 local GROWTH_TIMES = {
-    ["Wheat"] = {3,5,3},
-    ["Tomato"] = {5,4,5}
+    ["Wheat"] = {1.5,2.5,1.5},
+    ["Tomato"] = {2.5,2,2.5}
 }
 
 --[=[
@@ -119,8 +119,6 @@ function ResourceNode:Harvest(player : Player)
         warn(`{player.Name}'s replica wasnt found in the resource node`)
         return
     end
-
-    print(PlayerReplica)
 
     if not(PlayerReplica.Data[self.ID]) then
         PlayerReplica:Set({self.ID},{

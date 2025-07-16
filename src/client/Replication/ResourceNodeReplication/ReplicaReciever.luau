@@ -27,7 +27,7 @@ end
 function self.ListenForNew()
     
     --[=[
-        @prop Replica
+        @prop Replica Replica
         @within ResourceNode ReplicaReciever
     ]=]
     self.Replica = nil

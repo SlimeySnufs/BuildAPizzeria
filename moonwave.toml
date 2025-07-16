@@ -61,6 +61,10 @@ section = "Client Pizza Replication"
 tag = "PizzaPickupReplication"
 
 [[classOrder]]
+section = "Client ResourceNode Replication"
+tag = "ResourceNodeReplication"
+
+[[classOrder]]
 section = "Player State Handler"
 tag = "PlayerStateHandler"
 

@@ -16,9 +16,9 @@ end
 
 --[=[
     @function lerp
-    @param current
-    @param goal
-    @param alpha
+    @param current any
+    @param goal any
+    @param alpha number
     @within ResourceNodeReplication Render
 ]=]
 function self.lerp(a,b,c)
@@ -40,7 +40,6 @@ function self.UpdateWheatHeight(Node : Instance, ratio : number)
     local NewHeight : number = TotalHeight * ratio
 
     local CraftedSize : Vector3 = Vector3.new(WheatPart.Size.X, NewHeight, WheatPart.Size.Z)
-    local NewPositon : Vector3? = nil
 
     local BottomY = WheatPart.Position.Y - (OldHeight / 2)
     local NewPosition = Vector3.new(
@@ -49,7 +48,7 @@ function self.UpdateWheatHeight(Node : Instance, ratio : number)
         WheatPart.Position.Z
     )
 
-    TweenService:Create(WheatPart, TweenInfo.new(1), {Position = NewPosition,Size = CraftedSize}):Play()
+    TweenService:Create(WheatPart, TweenInfo.new(0.25), {Position = NewPosition,Size = CraftedSize}):Play()
 
 end
 
@@ -59,13 +58,12 @@ end
     @param NewValue Number
     @param OldValue Number?
     @param NodeType ("Wheat")
+    @within ResourceNodeReplication Render
 ]=]
 function self.UpdateGrowthState(Node : Instance, newValue : number, oldValue : number?, NodeType : string)
-
     if (NodeType == "Wheat" or NodeType == "Tomato") then
         self.UpdateWheatHeight(Node, newValue/4)
     end
-    
 end
 
 return self

@@ -7,11 +7,11 @@ local self = {}
 
 --[=[
     @function Init
-    @within ResourceNodeReplica Main
+    @within ResourceNodeReplication Main
 ]=]
 function self.Init()
     
-    local ReplicaReciever = require(script.Parent.ReplicaReciever).Init()
+    local _ReplicaReciever = require(script.Parent.ReplicaReciever).Init()
 
     return self
 

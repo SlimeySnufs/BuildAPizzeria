@@ -33,9 +33,9 @@ function self.ListenForSceneStart()
 
     Prompt.Triggered:Connect(function(plr: Player)
         if plr ~= Players.LocalPlayer then return end
+        Prompt.Enabled = false
         self.StartScene()
         self.Active = true
-        Prompt.Enabled = false
         self.HandleTapToViewButton(workspace:WaitForChild("Laptop"):WaitForChild("ScreenPart").TapToView)
     end)
 
@@ -52,6 +52,7 @@ function self.TurnOnPreShopUI()
     ScreenPart.Beam.Enabled = true
     ScreenPart.SurfaceGui.Enabled = true
     ScreenPart.TapToView.SurfaceGui.Enabled = true
+    ScreenPart.TapToView.CanQuery = true
 
 end
 
@@ -66,6 +67,7 @@ function self.TurnOffPreShopUI()
     ScreenPart.Beam.Enabled = false
     ScreenPart.SurfaceGui.Enabled = false
     ScreenPart.TapToView.SurfaceGui.Enabled = false
+    ScreenPart.TapToView.CanQuery = false
 
 end
 
@@ -98,27 +100,75 @@ function self.HandleTapToViewButton(TapToViewPart : BasePart)
         }):Play()
     end
 
-    Button.MouseButton1Down:Connect(function()
+    if (self.TapToViewConnections) then 
+        for _ , connection in self.TapToViewConnections do
+            connection:Disconnect()
+        end
+        self.TapToViewConnections = {}
+    else
+        self.TapToViewConnections = {}
+    end
+
+    self.TapToViewConnections["down"] = Button.MouseButton1Down:Connect(function()
         shrink()
     end)
 
-    Button.MouseButton1Up:Connect(function()
+    self.TapToViewConnections["up"] = Button.MouseButton1Up:Connect(function()
         normal()
     end)
 
-    Button.MouseEnter:Connect(function()
+    self.TapToViewConnections["enter"] = Button.MouseEnter:Connect(function()
         grow()
     end)
 
-    Button.MouseLeave:Connect(function()
+    self.TapToViewConnections["leave"] = Button.MouseLeave:Connect(function()
         normal()
     end)
 
+    if (self.ClosedListener) then
+        self.ClosedListener:Disconnect()
+        self.ClosedListener = nil
+    end
+
+    local mainui
+
     Button.Activated:Connect(function()
         print(`opening main store ui`)
-        StoreUI.OpenMainUI()
+        mainui = StoreUI.OpenMainUI()
+        self.ClosedListener = mainui.Closed:Connect(function()
+            self.TurnOffPreShopUI()
+            self.StopScene()
+        end)
     end)
 
+end
+
+--[=[
+    @function StopScene
+    @within ComputerStore Main
+]=]
+function self.StopScene()
+    local localplayer = Players.LocalPlayer
+    local char = localplayer.Character or localplayer.CharacterAdded:Wait()
+
+    local laptop = workspace.Laptop
+
+    local hrp : BasePart? = char:FindFirstChild("HumanoidRootPart")
+    if not(hrp) then
+        warn(`couldnt find hrp for player`)
+        return
+    end
+
+    local CurrentCamera = workspace.CurrentCamera
+    CurrentCamera.CameraType = Enum.CameraType.Custom
+    
+    if (self.MovementConn) then
+        self.MovementConn:Disconnect()
+        self.MovementConn = nil
+    end
+
+    laptop.Hitbox.StoreOpenPrompt.Enabled = true
+    hrp.Anchored = false
 end
 
 --[=[
@@ -145,6 +195,14 @@ function self.ChangeCamera(CamPart : BasePart)
 
     local Scale = 4000
 
+    local PlayerGui = LocalPlayer.PlayerGui
+
+    local StoreHolderVP : ViewportFrame = PlayerGui.MainGui.StoreHolder.ViewportFrame
+
+    local newCam = Instance.new("Camera")
+    newCam.Parent = StoreHolderVP
+    StoreHolderVP.CurrentCamera = newCam
+
     self.MovementConn = RunService.RenderStepped:Connect(function()
 	    local center: Vector2 = Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)
 	    local x: number = mouse.X - center.X / 2
@@ -162,6 +220,7 @@ function self.ChangeCamera(CamPart : BasePart)
 	    local result : CFrame = CFrame.lookAt(CamPart.CFrame.Position,vector)
 	
 	    CurrentCamera.CFrame = result
+        newCam.CFrame = result
     end)
 
 end

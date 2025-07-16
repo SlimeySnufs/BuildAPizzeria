@@ -241,12 +241,9 @@ function self.RemovedCustomer(id : string)
         return tonumber(a.Id) < tonumber(b.Id)
     end)
 
-    print(`customers:`,self.CurrentCustomers)
-
     local pizzapopup = nil
 
     for i, customer in ipairs(self.CurrentCustomers) do
-        print(i, customer.Id, id)
         if customer.Id == id then
             PhysicalNPC = customer.Model
 

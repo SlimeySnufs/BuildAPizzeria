@@ -78,8 +78,8 @@ function prompt_functions(prompt: ProximityPrompt)
 		num_seqConnection = RunService.Heartbeat:Connect(function(dT)
 			local num_Seq = {
 				NumberSequenceKeypoint.new(0, 0),
-				NumberSequenceKeypoint.new(dur_val.Value - .01 or 0, 0),
-				NumberSequenceKeypoint.new(dur_val.Value, .4),
+				NumberSequenceKeypoint.new(math.clamp(dur_val.Value - .01 or 0, 0.01, 0.99), 0),
+				NumberSequenceKeypoint.new(math.clamp(dur_val.Value, 0.01, 0.99), .4),
 				NumberSequenceKeypoint.new(1, .4)
 			}
 			

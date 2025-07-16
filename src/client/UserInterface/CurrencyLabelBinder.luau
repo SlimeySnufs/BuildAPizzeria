@@ -112,8 +112,8 @@ function self.BindLabelToCurrency(Currency: string, Label: TextLabel, DataPath: 
         local numericString = rawText:gsub(",", ""):gsub(escapedAffix, "")
         local currentValue = tonumber(numericString) or 0
 
-        local delta = targetValue - currentValue
-        local absDelta = math.abs(delta)
+        local delta : number = targetValue - currentValue
+        local absDelta: number = math.abs(delta)
         local steps = math.clamp(math.ceil(absDelta / 10), 3, 15)
         local increment = delta / steps
 
@@ -144,26 +144,30 @@ function self.BindLabelToCurrency(Currency: string, Label: TextLabel, DataPath: 
         runQueue()
     end)
 
-    repeat 
-        task.wait(0.2)
-    until replica.Data and replica.Data["Resources"] 
-
     task.spawn(function()
-        local data = replica.Data
 
-        for i = 1 , #DataPath - 1 do 
-            data = data[DataPath[i]]
-        end
+        repeat 
+            task.wait(0.2)
+        until replica.Data and replica.Data["Resources"] 
 
-        if data and data[Currency] ~= nil then
-            updateLabel(data[Currency])
-        else
-            repeat
-                task.wait(0.5)
-                print(`waiting`)
-            until data and data[Currency] ~= nil
-            updateLabel(data[Currency])
-        end
+        task.spawn(function()
+            local data = replica.Data
+
+            for i = 1 , #DataPath - 1 do 
+                data = data[DataPath[i]]
+            end
+
+            if data and data[Currency] ~= nil then
+                updateLabel(data[Currency])
+            else
+                repeat
+                    task.wait(0.5)
+                    print(`waiting`)
+                until data and data[Currency] ~= nil
+                updateLabel(data[Currency])
+            end
+        end)
+
     end)
 end
 
