@@ -77,23 +77,79 @@ function self.ListenForMouseClick(part : BasePart)
     self.ListeningParts[part] = function()
         local Viewport: ViewportFrame = self.StoreViewport
         local Camera : Camera = Viewport.CurrentCamera
+        
+        -- Check if camera exists
+        if not Camera then
+            warn("No camera found in viewport")
+            return
+        end
+        
         local absPos = Viewport.AbsolutePosition
         local absSize = Viewport.AbsoluteSize
         local mousePos = UserInputService:GetMouseLocation()
+        
+        -- Calculate mouse position relative to viewport
         local localX = mousePos.X - absPos.X
         local localY = mousePos.Y - absPos.Y
-        -- Clamp to viewport bounds
-        localX = math.clamp(localX, 0, absSize.X)
-        localY = math.clamp(localY, 0, absSize.Y)
-        -- Get the ray from the camera through the mouse position in the viewport
+        
+        -- Check if mouse is within viewport bounds
+        if localX < 0 or localX > absSize.X or localY < 0 or localY > absSize.Y then
+            return -- Mouse is outside viewport
+        end
+        
+        print(`Mouse in viewport: ({localX}, {localY}) in viewport size ({absSize.X}, {absSize.Y})`)
+        
+        -- Get the ray from the viewport camera through the mouse position
         local ray = Camera:ViewportPointToRay(localX, localY)
+        
+        print(`Ray origin: {ray.Origin}, direction: {ray.Direction}`)
+        
+        -- Create raycast params - we want to check ALL parts in the viewport, not filter to viewport itself
         local raycastParams = RaycastParams.new()
-        raycastParams.FilterDescendantsInstances = {Viewport}
+        -- Get all descendants of the viewport that are BaseParts
+        local viewportParts = {}
+        for _, descendant in pairs(Viewport:GetDescendants()) do
+            if descendant:IsA("BasePart") and descendant.Transparency < 1 then
+                table.insert(viewportParts, descendant)
+                print(`Found part in viewport: {descendant.Name} at {descendant.Position}`)
+            end
+        end
+        
+        if #viewportParts == 0 then
+            print("No visible parts found in viewport for raycasting")
+            return -- No parts to raycast against
+        end
+        
+        print(`Raycasting against {#viewportParts} parts`)
+        
+        raycastParams.FilterDescendantsInstances = viewportParts
         raycastParams.FilterType = Enum.RaycastFilterType.Whitelist
-        -- Raycast in the viewport's world
+        
+        -- For ViewportFrames, we need to raycast in the viewport's coordinate space
+        -- The ray from ViewportPointToRay is already in the correct coordinate space
         local result = workspace:Raycast(ray.Origin, ray.Direction * 1000, raycastParams)
-        if result and result.Instance == part then
-            print("Hit")
+        
+        if result then
+            print(`Raycast hit: {result.Instance.Name} at {result.Position}`)
+            if result.Instance == part then
+                print(`Hit target part: {part.Name}`)
+                -- Handle the click on this part
+                if self.CurrentItem ~= part then
+                    self.CurrentItem = part
+                    -- Get the index for this part
+                    local itemIndex = self.PartToIndex and self.PartToIndex[part]
+                    if itemIndex then
+                        print(`Selected item at index {itemIndex}: {part.Name}`)
+                        -- You can add additional logic here for item selection
+                    else
+                        print(`Selected item: {part.Name}`)
+                    end
+                end
+            else
+                print(`Hit wrong part: {result.Instance.Name} (expected {part.Name})`)
+            end
+        else
+            print("Raycast missed all parts")
         end
     end
 end
@@ -120,7 +176,13 @@ function self.RegisterPurchaseChoice(index : number, part : BasePart)
         part is in viewport, detect hit through raycasting from viewport camera to part
     ]]
 
-    print("Registering purchase choice")
+    print(`Registering purchase choice for index {index}: {part.Name}`)
+
+    -- Store the index with the part for later reference
+    if not self.PartToIndex then
+        self.PartToIndex = {}
+    end
+    self.PartToIndex[part] = index
 
     do
         self.ListenForMouseClick(part)
@@ -220,7 +282,11 @@ function self.OpenMainUI()
             item.Parent = self.StoreViewport
             table.insert(self.PreviousStoreItems,item)
             item.CFrame = part.CFrame
-            self.RegisterPurchaseChoice(i,part)
+            -- Register the cloned item for raycasting, not the placeholder part
+            self.RegisterPurchaseChoice(i, item)
+            -- Hide the placeholder part since we're using the cloned item
+            part.Transparency = 1
+            part.CanCollide = false
         end
 
     end
