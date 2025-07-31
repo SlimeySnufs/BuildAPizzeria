@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
+local Types = require(ServerScriptService.Server.Types)
 --[=[
     @class LocationConfig MoneyPad
     Uses the moneypad class and creates all the money pads in locations
@@ -138,7 +139,7 @@ function module.HandleMoneyPadReplicas()
         local _ = player.Character or player.CharacterAdded:Wait()
         local Profile = GetReplica.GetReplica(player)
 
-        for moneypadid , data in Profile.Data.MoneyPads do
+        for moneypadid : string , data : { [string]: any } in Profile.Data.MoneyPads do
             if not(module.moneypadLocations[moneypadid]) then
                 Profile.Data.MoneyPads[moneypadid] = nil
             end
@@ -146,7 +147,7 @@ function module.HandleMoneyPadReplicas()
 
         local PlrToken = replica.Token(tostring(player.UserId).."MoneyPads")
 
-        local PlayerMoneypadReplica = replica.New({
+        local PlayerMoneypadReplica : Types.Replica = replica.New({
             Token = PlrToken,
             Data = Profile.Data.MoneyPads
         })
@@ -164,9 +165,6 @@ function module.HandleMoneyPadReplicas()
             module.MoneyPadReplicas[player] = nil
         end
         module.RemoveReplicaFromMoneyPad(player)
-    
-        local profile = GetProfile.GetProfile(player)
-
     end
 
     Players.PlayerAdded:Connect(function(player : Player)

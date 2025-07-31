@@ -1,7 +1,9 @@
+--!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local self = {}
+local self: { [string]: any } = {}
+
 self["Slots"] = {
-    [1]  = ReplicatedStorage.StoreItems.Pork
+    [1]  = ReplicatedStorage.StoreItems.Pork,
 } :: {[number] : Instance}
 
 return self

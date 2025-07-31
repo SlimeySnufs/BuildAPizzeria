@@ -1,5 +1,6 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local startTime = tick()
-debug.profilebegin("ClientLoading")
+
 debug.setmemorycategory("Client")
 
 --[[DATA]]
@@ -11,6 +12,9 @@ local Scenes = script.Scenes
 local SceneMain = require(Scenes.Main).Init()
 
 local ReplicationStartTime = tick()
+
+--[[COMMAND BAR]]
+local Commands = require(script.Commands.Main)
 
 --[[REPLICATION DIRECTORY]]
 local Replication = script.Replication
@@ -53,6 +57,12 @@ task.spawn(function()
     require(ResourceNodeReplication.Main).Init()
 end)
 
+task.spawn(function()
+    --[[Button Animations]]
+    local ButtonAnimations = script.UserInterface.ButtonAnimations
+    require(ButtonAnimations).Init()
+end)
+
 print(`Replication modules started in parallel in {tick()-ReplicationStartTime}ms`)
 
 --[[USERINTERFACE]]
@@ -63,5 +73,4 @@ local s, UserInterfaceMain = pcall(function()
     end)
 end)
 
-debug.profileend()
 print(`Client initialized in {tick()-startTime}ms`)

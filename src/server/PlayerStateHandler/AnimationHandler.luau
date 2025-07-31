@@ -14,7 +14,7 @@ export type Animations =
     | "Harvesting"
     | "ToolIdle" 
 
-local AnimationIDs = {
+local AnimationIDs : { [string] : string | {string | number} } = {
     Idle = "rbxassetid://180435571",
     Walking = "rbxassetid://180426354",
     PickingUp = "rbxassetid://85253249744129",
@@ -22,7 +22,7 @@ local AnimationIDs = {
         {"rbxassetid://101558194922699",0.2},
         {"rbxassetid://136505071629868",1},
     },
-    ToolIdle = "rbxassetid://109823180904833"
+    ToolIdle = "rbxassetid://109823180904833",
 }
 
 function self.Init()
@@ -90,8 +90,8 @@ function self.AnimatePlayer(player: Player, animationType: Animations, looped : 
     local id = AnimationIDs[animationType]
 
     if (type(id) == "table") then
-        local rnd = Random.new():NextNumber()
-        for i , data : {string | number} in id do
+        local rnd: number = Random.new():NextNumber()
+        for i: number , data : {string | number} in id do
             if rnd <= data[2] then
                 id = data[1]
                 break
@@ -111,18 +111,18 @@ function self.AnimatePlayer(player: Player, animationType: Animations, looped : 
     LoadedAnimation.Priority = Enum.AnimationPriority.Action
     LoadedAnimation:Play(nil,nil,ANIM_SPEED[animationType] or 1)
 
-    self.CurrentAnimations[player] = animationType
+    self.CurrentAnimations[player :: Player] = animationType
 
-    self.CurrentAnimations[player] = animationType
-    self.CurrentAnimationMethods[player] = {
+    self.CurrentAnimations[player :: Player] = animationType
+    self.CurrentAnimationMethods[player :: Player] = {
         Stop = function()
             LoadedAnimation:Stop()
-            self.CurrentAnimations[player] = "Idle"
+            self.CurrentAnimations[player :: Player] = "Idle" :: {[Player] : string}
             self.AnimatePlayer(player, "Idle")
         end,
         IsPlaying = function()
             return self.CurrentAnimations[player] ~= "Idle"
-        end
+        end,
     }
 
     task.spawn(function()

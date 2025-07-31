@@ -134,7 +134,6 @@ function self.HandleReplicas()
             Data = {}
         })
 
-        actionPadReplica:Subscribe(player)
         actionPadReplica:Replicate()
 
         -- Store the replica in a cache if needed

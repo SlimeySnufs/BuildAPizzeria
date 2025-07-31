@@ -31,13 +31,13 @@ function self.ListenForStateChanges()
         @prop ListenerConnections {[Player] : {Disconnect : () -> ()}}
         @within NodeHarvesting Main
     ]=]
-    self.ListenerConnections = {}
+    self.ListenerConnections = {} :: {[Player] : {Disconnect : () -> ()}}
 
     --[=[
         @prop CooldownList {[Player] : number}
         @within NodeHarvesting Main
     ]=]
-    self.CooldownList = {}
+    self.CooldownList = {} :: {[Player] : number}
 
     local function OnJoin(player : Player)
 
@@ -62,12 +62,18 @@ function self.ListenForStateChanges()
 
                 AnimationHandler.AnimatePlayer(player,"Harvesting", false)
 
-                local crop : boolean = TillAction.SwingAttempt(player)
-                if not crop then return end
+                local crops : {Instance} = TillAction.SwingAttempt(player)
+                if not crops then return end
 
-                local hitNode = ResourceNodeCache[crop]
-
-                hitNode:Harvest(player)
+                local harvested_crop = false
+                for _, crop in pairs(crops) do
+                    local hitNode = ResourceNodeCache[crop]
+                    local did_harvest : boolean = hitNode:Harvest(player)
+                    harvested_crop = harvested_crop or did_harvest
+                    if (harvested_crop) then
+                        break
+                    end
+                end
 
             end)
 

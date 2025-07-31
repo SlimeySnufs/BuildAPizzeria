@@ -12,7 +12,7 @@ local Types = require(ServerScriptService.Server.Types)
 
 local Data = Server.Data
 local ProfileCache = require(Data.ProfileCache)
-local Players = game:GetService("Players")
+local _Players = game:GetService("Players")
 
 --[=[
     @function GetProfile
@@ -29,7 +29,7 @@ local Players = game:GetService("Players")
     @yields
     @tag DataManipulation
 ]=]
-function module.GetProfile(player: Player) : Types.Profile?
+function module.GetProfile(player: Player) : Types.Profile
 
     local waitTime = 0
 

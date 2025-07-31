@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
+local Types = require(ServerScriptService.Server.Types)
 --[=[
     @class LocationConfig ProductionPad 
     @tag ProductionPadService
@@ -102,17 +103,16 @@ function module.HandleProductionPadReplicas()
 
         local _ = plr.Character or plr.CharacterAdded:Wait()
 
-        local profile = GetProfile.GetProfile(plr)
+        local profile= GetProfile.GetProfile(plr)
         local ProductionPadData = profile.Data["ProductionPads"]
         
         local plrToken = replica.Token(tostring(plr.UserId).."ProductionPad")
 
-        local ProductionPadReplica = replica.New({
+        local ProductionPadReplica : Types.Replica = replica.New({
             Token = plrToken,
             Data = ProductionPadData
         })
 
-        ProductionPadReplica:Subscribe(plr)
         ProductionPadReplica:Replicate()
 
         for _ , productionPad : ProductionPad.ProductionPad in module.ProductionPadCache do

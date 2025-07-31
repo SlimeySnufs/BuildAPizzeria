@@ -38,7 +38,6 @@ function self.Init()
             Data = {}
         })
 
-        NPCReplica:Subscribe(player)
         NPCReplica:Replicate()
 
         self.NPCQueues[player.UserId] = {}

@@ -41,6 +41,10 @@ section = "UserInterface"
 tag = "UserInterface"
 
 [[classOrder]]
+section = "Scenes"
+tag = "Scenes"
+
+[[classOrder]]
 section = "Client MoneyPad Replication"
 tag = "MoneyPadReplication"
 

@@ -1,9 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
-local Server = ServerScriptService.Server
-local Data = Server.Data
-
-local Packages = ReplicatedStorage.Packages
+local Server: Script = ServerScriptService.Server
+local Data: Folder = Server.Data
+local Packages: Folder = ReplicatedStorage.Packages
 
 --[[SERVICES]]
 local Replica = require(Packages.replica)

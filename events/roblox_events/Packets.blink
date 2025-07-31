@@ -1,0 +1,16 @@
+option ClientOutput = "path/to/client.luau"
+option ServerOutput = "path/to/server.luau"
+
+event MyFirstEvent {
+    from: Server,
+    type: Reliable,
+    call: SingleSync,
+    data: string
+}
+
+event CancelState {
+    from: Client,
+    type: Reliable,
+    call: SingleSync,
+    data: string
+}

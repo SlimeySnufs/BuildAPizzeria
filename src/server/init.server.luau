@@ -1,12 +1,13 @@
 local Players = game:GetService("Players")
 local PhysiscsService = game:GetService("PhysicsService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Server: Script = ServerScriptService.Server
 local Data = Server.Data
 local DataManipulation= Server.DataManipulation
 local DataReplication = Server.DataReplication
 
-local DataMain = require(Data.Main)
+local _DataMain = require(Data.Main)
 local DataReplicationMain = require(DataReplication.Main)
 
 local ProfileFetcher = require(DataManipulation.GetProfile)
@@ -81,7 +82,7 @@ end)
 local Types = require(ServerScriptService.Server.Types)
 
 local function setCollisionGroupForCharacter(character: Model, groupName: string)
-    for _, basePart in character:GetDescendants() do
+    for _, basePart: Instance in character:GetDescendants() do
         if basePart:IsA("BasePart") then
             basePart.CollisionGroup = groupName
         end
@@ -104,12 +105,13 @@ local function onPlayerRemoving(player: Player)
     -- Clean up player profile when they leave
     local profile : Types.Profile = ProfileFetcher.GetProfile(player)
     if profile then
+        print(`Removing {player.Name}`)
         Playtime.DetachPlayerFromPlaytimeLoop(player)
         DataReplicationMain.UnhandlePlayer(player)
     end
 end
 
-for _ , plr in Players:GetPlayers() do
+for _ , plr: Player in Players:GetPlayers() do
     onPlayerAdded(plr)
 end
 
@@ -118,6 +120,8 @@ game:BindToClose(function()
         onPlayerRemoving(player)
     end
 end)
+
+local ConchHandler = require(script.Commands.Main)
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)

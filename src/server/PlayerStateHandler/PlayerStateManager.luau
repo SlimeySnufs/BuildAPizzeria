@@ -5,6 +5,8 @@
 
 local self = {}
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 --[=[
     @type States "HoldingPizza" | "None" | "Farming"
@@ -15,6 +17,10 @@ export type States =
     | "HoldingPizza"
     | "None"
     | "Farming"
+
+local cancellableStates : {[States] : boolean} = {
+    HoldingPizza = true,
+}
 
 local StateCollidables = {
     HoldingPizza = {"None"},
@@ -57,7 +63,6 @@ function self.Init()
         end
     end
 
-
     Players.PlayerAdded:Connect(function(player : Player)
         OnJoin(player)
     end)
@@ -78,14 +83,74 @@ function self.Init()
 
 end
 
+local cached_cancellableStates = {}
+local CooldownService = require(script.Parent.Parent.Services.CooldownService)
+local GetReplica = require(ServerScriptService.Server.DataManipulation.GetReplica)
+local blink = require(ReplicatedStorage.Packets.roblox_events.path.to.server)
+
+--[=[
+    @prop CooldownReg Registry
+    @within PlayerStateManager 
+]=]
+self.CooldownReg = CooldownService.new(3) :: CooldownService.Registry  -- 3 seconds cooldown
+
+blink.CancelState.On(function(player, _)
+    print(`called`)
+    local currentState = self.GetPlayerState(player)[1]
+
+    if (self.CooldownReg:IsOnCooldown(player.Name)) then
+        warn(`Player {player.Name} tried to cancel state {currentState} but is on cooldown.`)
+        return
+    end
+
+    if not cancellableStates[currentState] then
+        warn(`Player {player.Name} tried to cancel state {currentState} but it is not cancellable.`)
+        return
+    end
+
+    if (cached_cancellableStates[player]) then
+        self.CooldownReg:StartCooldown(player.Name)
+        local success, issue = pcall(function()
+            print(cached_cancellableStates)
+            cached_cancellableStates[player]()
+            cached_cancellableStates[player] = nil
+        end)
+
+        if not success then
+            warn(`Failed to cancel state for player {player.Name}, issue:`,issue)
+            return
+        end
+
+        print(`Player {player.Name} cancelled state {currentState}!`)
+    else
+        print(`Player {player.Name} cancelled state {currentState} without a previous state.`)
+    end
+end)
+
 --[=[
     @function AttemptStateChange
     @param player Player
     @param newState string
+    @param source string? -- The source of the state change, can be used for logging or debugging
+    @param cancel () -> ()? -- A function to call if the state change is cancellable
     @return boolean
+    @error NO_CANCEL_FUNCTION - If the new state is cancellable, a cancel function must be provided.
     @within PlayerStateManager
 ]=]
-function self.AttemptStateChange(player: Player, newState: States, source : string?): boolean
+function self.AttemptStateChange(player: Player, newState: States, source : string? , cancel : () -> ()?): boolean
+
+    if cached_cancellableStates[player] then
+        cached_cancellableStates[player]()
+        cached_cancellableStates[player] = nil
+    end
+
+    if cancellableStates[newState] and not(cancel) then
+        error(`State {newState} is cancellable, but no cancel function provided.`)
+        return false
+    elseif cancellableStates[newState] and cancel then
+        cached_cancellableStates[player] = cancel
+    end
+
     if not self.PlayerStates[player] then
         self.PlayerStates[player] = {"None"}
     end
@@ -106,6 +171,9 @@ function self.AttemptStateChange(player: Player, newState: States, source : stri
     end
 
     self.PlayerStates[player] = {newState}
+
+    local plrReplica = GetReplica.GetReplica(player)
+    plrReplica:Set({`State`}, newState)
 
     for i , listenerData in self.Listeners do
         if listenerData.plr.UserId ~= player.UserId then continue end

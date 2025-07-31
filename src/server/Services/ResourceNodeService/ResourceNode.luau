@@ -110,9 +110,10 @@ local GROWTH_TIMES = {
 --[=[
     @method Harvest
     @param player Player
+    @return boolean -- Harvested successfully
     @within ResourceNode
 ]=]
-function ResourceNode:Harvest(player : Player)
+function ResourceNode:Harvest(player : Player) : boolean
     
     local PlayerReplica = self.ReplicaCache[player]
     if not(PlayerReplica) then
@@ -137,7 +138,7 @@ function ResourceNode:Harvest(player : Player)
     if isRegrowing then return end
 
     if (CurrentGrowthStage <= 1) then
-        return
+        return false
     end
 
     PlayerReplica:Set({self.ID, "GrowthStage"},CurrentGrowthStage-1)
@@ -158,6 +159,8 @@ function ResourceNode:Harvest(player : Player)
         PlayerReplica:Set({self.ID, "Regrowing"},true)
         self:StartRegrowForPlayer(player)
     end
+
+    return true
 
 end
 

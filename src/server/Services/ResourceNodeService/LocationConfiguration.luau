@@ -89,7 +89,6 @@ function self.HandleReplicas()
             Data = {},
         })
 
-        ResourceReplica:Subscribe(player)
         ResourceReplica:Replicate()
 
         self.ReplicaCache[player] = ResourceReplica

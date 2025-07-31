@@ -1,5 +1,13 @@
 local c_prompts = {}
 
+--[=[
+	@class CustomPrompts
+	this is a standalone working module.
+	no dependancies or imports other than assets used in rep.
+	@tag UserInterface
+	@client
+]=]
+
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game.ReplicatedStorage

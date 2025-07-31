@@ -29,7 +29,7 @@ local ReplicaCache = require(DataReplication.ReplicaCache)
     @yields
     @tag DataManipulation
 ]=]
-function module.GetReplica(player: Player) : Types.Replica?
+function module.GetReplica(player: Player) : Types.Replica
 
     local waitTime = 0
 

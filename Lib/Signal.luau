@@ -226,7 +226,10 @@ function Signal:Once(fn)
 	return cn
 end
 
--- Make signal strict
+--[[ 
+
+Make signal strict
+
 setmetatable(Signal, {
 	__index = function(tb, key)
 		error(("Attempt to get Signal::%s (not a valid member)"):format(tostring(key)), 2)
@@ -235,5 +238,7 @@ setmetatable(Signal, {
 		error(("Attempt to set Signal::%s (not a valid member)"):format(tostring(key)), 2)
 	end
 })
+	
+]]
 
 return Signal

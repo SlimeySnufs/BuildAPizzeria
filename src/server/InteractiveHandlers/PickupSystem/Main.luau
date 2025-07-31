@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
+local janitor = require(ReplicatedStorage.Packages.janitor)
 local AnimationHandler = require(ServerScriptService.Server.PlayerStateHandler.AnimationHandler)
 local replica = require(ReplicatedStorage.Packages.replica)
 
@@ -89,6 +90,28 @@ function self.CanPickUp(player: Player, itemName : string): boolean
 end
 
 --[=[
+    @function CancelPickup
+    Cancels the current pickup action for a player and resets their state as well as animation + wipes the pickup stack
+    @param player Player
+    @within PickupSystem
+]=]
+function self.CancelPickup(player: Player)
+    if not self.PickupStack[player.UserId] then
+        return
+    end
+
+    print(`called here`)
+
+    if self.CurrentAnimations[player] then
+        self.CurrentAnimations[player].Stop()
+        self.CurrentAnimations[player] = nil
+    end
+
+    self.PickupStack[player.UserId] = {}
+    self.PizzaStackReplica:Set({player.UserId}, {})
+end
+
+--[=[
     @function PickUp
     Handles the pickup of an item by a player
     @param player Player
@@ -102,14 +125,23 @@ function self.PickUp(player: Player, AboveHead: boolean, Item: Instance)
         self.PickupStack[player.UserId] = {}
     end
 
+    self._janitor = janitor.new()
+
     local CurrentPlayerState: {string} = PlayerStateManager.GetPlayerState(player)
     if not table.find(CurrentPlayerState, "HoldingPizza") then
-        --not picking up anything right now
-        local ChangedState : boolean, PreviousState : {string} = PlayerStateManager.AttemptStateChange(player, "HoldingPizza")
+
+        local ChangedState : boolean, PreviousState : {string} = PlayerStateManager.AttemptStateChange(player, "HoldingPizza", `None`, self._janitor:Add(function()
+            print(`cancelled pickup for {player.Name}`)
+            self.CancelPickup(player)
+            PlayerStateManager.AttemptStateChange(player, `None`,`HoldingPizza`)
+            self._janitor:Cleanup()
+        end))
+
         if not(ChangedState) then
             warn(`cant change state from:`, PreviousState)
             return
         end
+
     end
 
     self.CurrentAnimations[player] = AnimationHandler.AnimatePlayer(player, "PickingUp", true)

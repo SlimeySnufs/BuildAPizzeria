@@ -3,9 +3,64 @@
 registry = "test"
 
 [[package]]
+name = "alicesaidhi/conch"
+version = "0.2.4"
+dependencies = [["ast", "alicesaidhi/conch-ast@0.2.1"], ["compiler", "alicesaidhi/conch-compiler@0.2.2"], ["intel", "alicesaidhi/conch-analysis@0.2.1"], ["types", "alicesaidhi/conch-types@0.2.1"], ["vm", "alicesaidhi/conch-vm@0.2.1"]]
+
+[[package]]
+name = "alicesaidhi/conch-analysis"
+version = "0.2.1"
+dependencies = [["types", "alicesaidhi/conch-types@0.2.1"]]
+
+[[package]]
+name = "alicesaidhi/conch-ast"
+version = "0.2.1"
+dependencies = [["types", "alicesaidhi/conch-types@0.2.1"]]
+
+[[package]]
+name = "alicesaidhi/conch-compiler"
+version = "0.2.2"
+dependencies = [["types", "alicesaidhi/conch-types@0.2.1"]]
+
+[[package]]
+name = "alicesaidhi/conch-types"
+version = "0.2.1"
+dependencies = []
+
+[[package]]
+name = "alicesaidhi/conch-ui"
+version = "0.2.4"
+dependencies = [["ast", "alicesaidhi/conch-ast@0.2.1"], ["conch", "alicesaidhi/conch@0.2.4"], ["vide", "centau/vide@0.3.1"]]
+
+[[package]]
+name = "alicesaidhi/conch-vm"
+version = "0.2.1"
+dependencies = [["types", "alicesaidhi/conch-types@0.2.1"]]
+
+[[package]]
 name = "ayrezrblx/replica"
 version = "0.1.9"
 dependencies = []
+
+[[package]]
+name = "centau/vide"
+version = "0.3.1"
+dependencies = []
+
+[[package]]
+name = "evaera/promise"
+version = "4.0.0"
+dependencies = []
+
+[[package]]
+name = "howmanysmall/janitor"
+version = "1.18.3"
+dependencies = [["Promise", "howmanysmall/typed-promise@4.0.6"]]
+
+[[package]]
+name = "howmanysmall/typed-promise"
+version = "4.0.6"
+dependencies = [["Promise", "evaera/promise@4.0.0"]]
 
 [[package]]
 name = "mattschrubb/zoneplus"
@@ -15,4 +70,4 @@ dependencies = []
 [[package]]
 name = "owner/buildapizzeria"
 version = "0.1.0"
-dependencies = [["replica", "ayrezrblx/replica@0.1.9"], ["zoneplus", "mattschrubb/zoneplus@3.2.0"]]
+dependencies = [["conch", "alicesaidhi/conch@0.2.4"], ["conch_ui", "alicesaidhi/conch-ui@0.2.4"], ["janitor", "howmanysmall/janitor@1.18.3"], ["replica", "ayrezrblx/replica@0.1.9"], ["zoneplus", "mattschrubb/zoneplus@3.2.0"]]
