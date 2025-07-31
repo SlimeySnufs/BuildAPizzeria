@@ -49,8 +49,8 @@ function self.Init()
     ActionLine.CancelAction.Size = OriginalSize
     self.TweenButtonSizeBasedOnEnabled(ActionLine.CancelAction, false)
 
-    replica.ListenForChange({`State`}, function(state)
-        print(state)
+    replica.ListenForChange({`State`}, function(state : string)
+        print(state,`is the new state of the player!`)
         if table.find(CancellableStates,state) then
             print(`is cancellable state:`, state)
             ActionLine.CancelAction.Visible = true

@@ -26,12 +26,17 @@ function self.ListenForNew()
     replica.OnNew("PizzaStack", function(pizzaStackReplica : typeof(replica.New()))
         pizzaStackReplica:OnChange(function(action : string, path : {string}, newValue : any, oldValue : any)
             if (action ~= "Set") then return end
-            
-            local PlayerUserID : number = path[#path - 2]
+
+            local playerName : string = path[#path - 2]
             local pizzaID = path[#path - 1]
             local pizzaData = newValue
 
-            Render.UpdatePlayerStack(PlayerUserID, pizzaStackReplica.Data[PlayerUserID] or {})
+            if not(playerName) then
+                warn("Player name not found in path:", path)
+                return
+            end
+
+            Render.UpdatePlayerStack(playerName, pizzaStackReplica.Data[playerName] or {})
 
         end)
         self.Replica = pizzaStackReplica

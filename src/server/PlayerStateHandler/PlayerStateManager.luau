@@ -124,6 +124,8 @@ blink.CancelState.On(function(player, _)
         print(`Player {player.Name} cancelled state {currentState}!`)
     else
         print(`Player {player.Name} cancelled state {currentState} without a previous state.`)
+        self.CooldownReg:StartCooldown(player.Name)
+        self.AttemptStateChange(player, `None`, `Cancelled`, nil)
     end
 end)
 
@@ -142,6 +144,7 @@ function self.AttemptStateChange(player: Player, newState: States, source : stri
     if cached_cancellableStates[player] then
         cached_cancellableStates[player]()
         cached_cancellableStates[player] = nil
+        self.AttemptStateChange(player, `None`,`Cancelled`, nil)
     end
 
     if cancellableStates[newState] and not(cancel) then

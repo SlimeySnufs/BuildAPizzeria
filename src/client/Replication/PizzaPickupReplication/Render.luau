@@ -53,14 +53,12 @@ local ITEM_SPACING = 0.25
     @param playerUserId number -- The UserId of the player whose stack is updating
     @param stackData {[string]: {any}} -- Stack data for rendering
 ]=]
-function self.UpdatePlayerStack(playerUserId: number, stackData: {[string]: {any}})
+function self.UpdatePlayerStack(playerName: string, stackData: {[string]: {any}})
 
-    local s, player: Player? = pcall(function()
-        return Players:GetPlayerByUserId(tonumber(playerUserId))
-    end)
+    local player = Players:FindFirstChild(playerName)
 
-    if not s or not player then
-        return warn("Player with UserId", playerUserId, "not found.")
+    if not player then
+        return warn("Player with Name", playerName, "not found.")
     end
 
     local character = player.Character or player.CharacterAdded:Wait()

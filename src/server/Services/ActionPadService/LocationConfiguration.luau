@@ -47,7 +47,7 @@ function self.Init()
                 return
             end
 
-            local PlayerPizzaStack = PickUpSystem.PickupStack[player.UserId]["Pizza"]
+            local PlayerPizzaStack = PickUpSystem.PickupStack[player]["Pizza"]
 
             if (PlayerPizzaStack == nil) then
                 return
