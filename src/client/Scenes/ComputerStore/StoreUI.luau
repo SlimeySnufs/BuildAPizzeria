@@ -62,16 +62,76 @@ function self.UpdateCurrentBuyingAmountUI(amount : number | string)
     print(self.CurrentItem,StoreData)
 
     CurrentAmountLabel.Text = `BUY: {amount}`
-    ComputerStoreButtons.UpdateBuyButton(StoreData.Slots[tonumber(self.CurrentItem.Name or 1)])
 
 end
+
+--[[
+    @property ListeningParts {[BasePart]: (any) -> ()}
+    @within ComputerStore ShopUI
+]]
+self.ListeningParts = {} :: {[BasePart]: (any) -> ()}
+
+--[[
+    @function ListenForMouseClick
+    @param part BasePart
+    @within ComputerStore ShopUI
+]]
+function self.ListenForMouseClick(part : BasePart)
+    if self.ListeningParts[part] then
+        self.ListeningParts[part] = nil
+    end
+    
+    self.ListeningParts[part] = function()
+        local Viewport: ViewportFrame = self.StoreViewport
+        local Camera : Camera = Viewport.CurrentCamera
+        local absPos = Viewport.AbsolutePosition
+        local absSize = Viewport.AbsoluteSize
+        local mousePos = UserInputService:GetMouseLocation()
+        local localX = mousePos.X - absPos.X
+        local localY = mousePos.Y - absPos.Y
+        -- Clamp to viewport bounds
+        localX = math.clamp(localX, 0, absSize.X)
+        localY = math.clamp(localY, 0, absSize.Y)
+        -- Get the ray from the camera through the mouse position in the viewport
+        local ray = Camera:ViewportPointToRay(localX, localY)
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterDescendantsInstances = {Viewport}
+        raycastParams.FilterType = Enum.RaycastFilterType.Whitelist
+        -- Raycast in the viewport's world
+        local result = workspace:Raycast(ray.Origin, ray.Direction * 1000, raycastParams)
+        if result and result.Instance == part then
+            print("Hit")
+        end
+    end
+end
+
+UserInputService.InputBegan:Connect(function(input: InputObject,gameProcessed: boolean)
+    if (Enum.UserInputType.MouseButton1 ~= input.UserInputType) then return end 
+    if (gameProcessed) then return end
+
+    for part: BasePart,func: (any) -> () in self.ListeningParts do
+        func()
+    end
+
+end)
 
 --[=[
     @prop ListeningParts {[BasePart]: (any) -> ()}
     @within ComputerStore ShopUI
 ]=]
+function self.RegisterPurchaseChoice(index : number, part : BasePart)
 
-self.ListeningParts = {} :: {[BasePart]: (any) -> ()}
+    --[[
+        part is in viewport, detect hit through raycasting from viewport camera to part
+    ]]
+
+    print("Registering purchase choice")
+
+    do
+        self.ListenForMouseClick(part)
+    end
+
+end
 
 --[=[
     @function OpenMainUI
@@ -160,6 +220,7 @@ function self.OpenMainUI()
             item.Parent = self.WorldModel[tostring(i)]
             table.insert(self.PreviousStoreItems,item)
             item.CFrame = part.CFrame
+            self.RegisterPurchaseChoice(i,part)
         end
 
     end
