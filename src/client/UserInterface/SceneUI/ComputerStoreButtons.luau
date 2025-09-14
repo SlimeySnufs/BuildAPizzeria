@@ -15,6 +15,7 @@ local MainGui = PlayerGui:WaitForChild(`MainGui`)
 local StoreHolder = MainGui:WaitForChild(`StoreHolder`)
 
 local Signal = require(ReplicatedStorage.Lib.Signal)
+local StoreData = require(ReplicatedStorage.Shared.StoreData)
 
 export type Signal = typeof(Signal.new(...))
 
@@ -52,9 +53,8 @@ end
 ]=]
 function module.UpdateBuyButton(item : Instance)
     -- Update the buy button's state or appearance here
-    Buttons.Action.ActionText.Text = "BUY"
-    Buttons.Action.SubText.Text = "Current Item: " .. item.Name
-
+    Buttons.Action.ActionText.Text = `buy {StoreData.Slots[tonumber(item.Name)].Name}`
+    Buttons.Action.SubText.Text = "price: ?"
 end
 
 --[=[

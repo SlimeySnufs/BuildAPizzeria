@@ -9,6 +9,7 @@ local Janitor = require(ReplicatedStorage.Packages.janitor)
 
 export type Signal = typeof(Signal.new(...))
 local StoreData: { [string]: any } = require(ReplicatedStorage.Shared.StoreData)
+local SceneUI = require(script.Parent.Parent.Parent.UserInterface.SceneUI.ComputerStoreButtons)
 
 --[=[
     @class ComputerStore ShopUI
@@ -59,77 +60,8 @@ function self.UpdateCurrentBuyingAmountUI(amount : number | string)
     local SurfaceGui : SurfaceGui = AmountPurchasing.SurfaceGui
     local CurrentAmountLabel = SurfaceGui.Current
 
-    print(self.CurrentItem,StoreData)
-
     CurrentAmountLabel.Text = `BUY: {amount}`
-
-end
-
---[[
-    @property ListeningParts {[BasePart]: (any) -> ()}
-    @within ComputerStore ShopUI
-]]
-self.ListeningParts = {} :: {[BasePart]: (any) -> ()}
-
---[[
-    @function ListenForMouseClick
-    @param part BasePart
-    @within ComputerStore ShopUI
-]]
-function self.ListenForMouseClick(part : BasePart)
-    if self.ListeningParts[part] then
-        self.ListeningParts[part] = nil
-    end
-    
-    self.ListeningParts[part] = function()
-        local Viewport: ViewportFrame = self.StoreViewport
-        local Camera : Camera = Viewport.CurrentCamera
-        local absPos = Viewport.AbsolutePosition
-        local absSize = Viewport.AbsoluteSize
-        local mousePos = UserInputService:GetMouseLocation()
-        local localX = mousePos.X - absPos.X
-        local localY = mousePos.Y - absPos.Y
-        -- Clamp to viewport bounds
-        localX = math.clamp(localX, 0, absSize.X)
-        localY = math.clamp(localY, 0, absSize.Y)
-        -- Get the ray from the camera through the mouse position in the viewport
-        local ray = Camera:ViewportPointToRay(localX, localY)
-        local raycastParams = RaycastParams.new()
-        raycastParams.FilterDescendantsInstances = {Viewport}
-        raycastParams.FilterType = Enum.RaycastFilterType.Whitelist
-        -- Raycast in the viewport's world
-        local result = workspace:Raycast(ray.Origin, ray.Direction * 1000, raycastParams)
-        if result and result.Instance == part then
-            print("Hit")
-        end
-    end
-end
-
-UserInputService.InputBegan:Connect(function(input: InputObject,gameProcessed: boolean)
-    if (Enum.UserInputType.MouseButton1 ~= input.UserInputType) then return end 
-    if (gameProcessed) then return end
-
-    for part: BasePart,func: (any) -> () in self.ListeningParts do
-        func()
-    end
-
-end)
-
---[=[
-    @prop ListeningParts {[BasePart]: (any) -> ()}
-    @within ComputerStore ShopUI
-]=]
-function self.RegisterPurchaseChoice(index : number, part : BasePart)
-
-    --[[
-        part is in viewport, detect hit through raycasting from viewport camera to part
-    ]]
-
-    print("Registering purchase choice")
-
-    do
-        self.ListenForMouseClick(part)
-    end
+    SceneUI.UpdateBuyButton(self.CurrentItem)
 
 end
 
@@ -143,15 +75,10 @@ function self.OpenMainUI()
     self._janitor = Janitor.new()
 
     if not(self.Closed) then
-        self.Closed = self._janitor:AddObject(Signal.new(),`Disconnect`)
+        self.Closed = self._janitor:AddObject(Signal.new(),`DisconnectAll`)
     end
 
-    if (self.ClosedListener) then
-        self.ClosedListener:Disconnect()
-        self.ClosedListener = nil
-    end
-
-    self.ClosedListener = self.Closed:Connect(function()
+    self.ClosedListener = self._janitor:AddObject(self.Closed:Connect(function()
 
         if (self.BuyingConn) then
             self.BuyingConn:Disconnect()
@@ -170,7 +97,7 @@ function self.OpenMainUI()
         PlayerGui.MainGui.Bottom.Visible = true
         ComputerStoreButtons.HideButtons()
 
-    end)
+    end),`Disconnect`)
 
     if not(self.Laptop) then
         self.Laptop = workspace.Laptop
@@ -220,7 +147,6 @@ function self.OpenMainUI()
             item.Parent = self.WorldModel[tostring(i)]
             table.insert(self.PreviousStoreItems,item)
             item.CFrame = part.CFrame
-            self.RegisterPurchaseChoice(i,part)
         end
 
     end
@@ -254,6 +180,11 @@ function self.OpenMainUI()
     end), `Disconnect`)
 
     ComputerStoreButtons.ShowButtons()
+
+    if not(self.CurrentItem) then
+        self.CurrentItem = StoreData.Slots[1]
+    end
+
     self.UpdateCurrentBuyingAmountUI(self.CurrentBuyingAmount)
 
     return self
