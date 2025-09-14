@@ -1,4 +1,4 @@
-title = "BuildAPizzeria"  # From Git
+title = "buildapizzeria"  # From Git
 gitRepoUrl = "https://github.com/SlimeySnufs/BuildAPizzeria" # From Git
 
 gitSourceBranch = "master"
@@ -83,8 +83,8 @@ onBrokenMarkdownLinks = "warn"
 # From git:
 organizationName = "Slimey"
 projectName = "BuildAPizzeria"
-url = "https://AuthorName.github.io"
-baseUrl = "/BuildAPizzeria"
+url = "https://slimeysnufs.dev/buildapizzeria/"
+baseUrl = "/buildapizzeria/"
 tagline = "hopefully this sees light"
 
 [footer]
