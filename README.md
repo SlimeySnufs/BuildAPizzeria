@@ -1,3 +1,6 @@
 # BuildAPizzeria
+Abandoned Project
 
-pizza project pog
+Using ProfileStore + Replica for Replication to the Client
+Using Blink for State Communication to the Player
+
